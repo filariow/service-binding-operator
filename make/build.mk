@@ -46,6 +46,10 @@ image:
 push-image: image registry-login
 	$(CONTAINER_RUNTIME) push "$(OPERATOR_IMAGE_REF)"
 
+.PHONY: push-image-unauth
+push-image-unauth:
+	$(CONTAINER_RUNTIME) push "$(OPERATOR_IMAGE_REF)"
+
 .PHONY: bundle-image
 # Build the bundle image
 bundle-image: bundle
