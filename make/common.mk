@@ -172,7 +172,7 @@ endif
 
 .PHONY: minikube
 MINIKUBE ?=  $(shell pwd)/bin/minikube
-MINIKUBE_VERSION ?= latest
+MINIKUBE_VERSION ?= v1.26.1
 minikube:
 ifeq (,$(wildcard $(MINIKUBE)))
 ifeq (,$(shell which minikube 2>/dev/null))
@@ -242,6 +242,7 @@ endif
 
 .PHONY: install-tools
 install-tools: minikube opm mockgen kubectl-slice yq kustomize controller-gen gen-mocks operator-sdk kubectl helm
+	@echo
 	@echo run '`eval $$(make local-env)`' to configure your shell to use tools in the ./bin folder
 
 .PHONY: local-env
