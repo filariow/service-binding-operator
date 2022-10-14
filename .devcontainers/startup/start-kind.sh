@@ -1,9 +1,10 @@
 #!/bin/env sh
 
-kind create cluster --config /sbo/.devcontainers/kind-config.yaml
+unset KUBECONFIG
+kind create cluster --config ./kind-config.yaml
 docker exec kind-control-plane sh -c 'getent hosts registry >> /etc/hosts'
 sed -i 's/0\.0\.0\.0/kubernetes/' ${HOME}/.kube/config
-export KUBECONFIG=$HOME/.kube/config
+export KUBECONFIG=${HOME}/.kube/config
 
 cat <<EOF | kubectl apply -f -
 apiVersion: v1
@@ -19,3 +20,13 @@ EOF
 
 operator-sdk olm install --timeout 10m
 
+cat << EOF
+
+Setup is complete.
+
+Try install and test the service-binding-operator from the container $HOSTNAME
+
+    docker exec $HOSTNAME make deploy
+    docker exec $HOSTNAME make test-acceptance TEST_ACCEPTANCE_TAGS="@dev" TEST_ACCEPTANCE_START_SBO=remote TEST_ACCEPTANCE_CLI=kubectl
+
+EOF

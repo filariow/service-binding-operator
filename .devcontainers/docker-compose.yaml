@@ -9,10 +9,13 @@ services:
         UNAME: ${USER}
       context: ../
       dockerfile: .devcontainers/Dockerfile
+    working_dir: /sbo
     volumes:
       - ../:/sbo
     environment:
+      KUBECONFIG: /home/${USER}/.kube/config
       DOCKER_HOST: tcp://dind:2375
+      OPERATOR_REPO_REF: registry:5000/sbo
     links:
       - dind
     depends_on:

@@ -1,6 +1,5 @@
 FROM fedora:36
 
-CMD [ "sleep", "infinity" ]
 
 RUN dnf install -y 'dnf-command(config-manager)' && \
         dnf install -y golang make jq helm kubernetes-client git && \
@@ -18,4 +17,8 @@ RUN groupadd -g ${GID} -o ${UNAME} && \
         usermod -aG docker ${UNAME}
 
 USER $UNAME
+WORKDIR /startup
+COPY .devcontainers/startup/* .
+
+CMD cd /startup && ./start-kind.sh && sleep infinity
 
