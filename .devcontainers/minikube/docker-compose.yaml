@@ -1,0 +1,17 @@
+version: "3"
+services:
+  app:
+    privileged: true
+    build:
+      args:
+        UID: ${UID}
+        GID: ${GID}
+        UNAME: ${USER}
+      context: ../../
+      dockerfile: .devcontainers/minikube/Dockerfile
+    working_dir: /sbo
+    volumes:
+      - ../../:/sbo
+      - ./docker-daemon.json:/etc/docker/daemon.json
+    environment:
+      KUBECONFIG: /tmp/minikubeconfig

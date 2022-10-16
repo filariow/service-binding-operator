@@ -7,11 +7,11 @@ services:
         UID: ${UID}
         GID: ${GID}
         UNAME: ${USER}
-      context: ../
-      dockerfile: .devcontainers/Dockerfile
+      context: ../../
+      dockerfile: .devcontainers/kind/Dockerfile
     working_dir: /sbo
     volumes:
-      - ../:/sbo
+      - ../../:/sbo
     environment:
       KUBECONFIG: /home/${USER}/.kube/config
       DOCKER_HOST: tcp://dind:2375
@@ -21,6 +21,9 @@ services:
     depends_on:
       dind:
         condition: service_healthy
+    command:
+      - sleep
+      - infinity
 
   dind:
     hostname: kubernetes
