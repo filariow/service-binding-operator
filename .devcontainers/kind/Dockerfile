@@ -18,7 +18,7 @@ RUN groupadd -g ${GID} -o ${UNAME} && \
 
 USER $UNAME
 WORKDIR /startup
-COPY .devcontainers/startup/* .
+COPY .devcontainers/kind/* .
 
 CMD cd /startup && ./start-kind.sh && sleep infinity
 
