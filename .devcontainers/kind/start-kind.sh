@@ -2,7 +2,7 @@
 
 unset KUBECONFIG
 kind create cluster --config ./kind-config.yaml
-docker exec kind-control-plane sh -c 'getent hosts registry >> /etc/hosts'
+docker exec kind-control-plane sh -c "echo $(getent hosts registry) >> /etc/hosts"
 sed -i 's/0\.0\.0\.0/kubernetes/' ${HOME}/.kube/config
 export KUBECONFIG=${HOME}/.kube/config
 
