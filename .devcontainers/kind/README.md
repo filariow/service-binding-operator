@@ -18,7 +18,7 @@ docker exec kind-dind-1 sh -c 'docker exec kind-control-plane bash -c "echo $(ge
 1. Build and deploy the Service Binding Operator
 ```console
 docker exec kind-app-1 make deploy OPERATOR_REPO_REF=registry:5000/sbo
-docker exec kind-app-1 make push-image-unauth OPERATOR_REPO_REF=registry:5000/sbo
+docker exec kind-app-1 make push-image -o registry-login OPERATOR_REPO_REF=registry:5000/sbo
 ```
 
 1. Run acceptance tests
