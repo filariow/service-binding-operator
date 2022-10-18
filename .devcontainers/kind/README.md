@@ -23,5 +23,14 @@ docker exec kind-app-1 make push-image-unauth OPERATOR_REPO_REF=registry:5000/sb
 
 1. Run acceptance tests
 ```bash
-docker exec kind-app-1 make test-acceptance test_acceptance_tags="@dev" test_acceptance_start_sbo=remote test_acceptance_cli=kubectl
+docker exec kind-app-1 make test-acceptance TEST_ACCEPTANCE_TAGS="@dev" TEST_ACCEPTANCE_START_SBO=remote TEST_ACCEPTANCE_CLI=kubectl
+```
+
+## Troubleshooting
+
+If you notice problems with kind startup, a problem may be in host's inotify limits
+
+```console
+sudo sysctl fs.inotify.max_user_watches=655360
+sudo sysctl fs.inotify.max_user_instances=1280
 ```
