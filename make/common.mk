@@ -170,4 +170,83 @@ OPM = $(shell which opm)
 endif
 endif
 
+.PHONY: minikube
+MINIKUBE ?=  $(shell pwd)/bin/minikube
+MINIKUBE_VERSION ?= v1.26.1
+minikube:
+ifeq (,$(wildcard $(MINIKUBE)))
+ifeq (,$(shell which minikube 2>/dev/null))
+	@{ \
+	set -e ;\
+	mkdir -p $(dir $(MINIKUBE)) ;\
+	curl -sSLo $(MINIKUBE)  https://storage.googleapis.com/minikube/releases/$(MINIKUBE_VERSION)/minikube-$(OS)-$(ARCH) ;\
+	chmod +x $(MINIKUBE) ;\
+	}
+else
+MINIKUBE = $(shell which minikube)
+endif
+endif
+
+.PHONY: operator-sdk
+OPERATOR_SDK ?=  $(shell pwd)/bin/operator-sdk
+OPERATOR_SDK_STABLE ?= 1.24.0
+operator-sdk:
+ifeq (,$(wildcard $(OPERATOR_SDK)))
+ifeq (,$(shell which operator-sdk 2>/dev/null))
+	@{ \
+	set -e ;\
+	mkdir -p $(dir $(OPERATOR_SDK)) ;\
+	curl -sSLo $(OPERATOR_SDK) https://github.com/operator-framework/operator-sdk/releases/download/v$(OPERATOR_SDK_STABLE)/operator-sdk_$(OS)_$(ARCH) ;\
+	chmod +x $(OPERATOR_SDK) ;\
+	}
+else
+OPERATOR_SDK = $(shell which operator-sdk)
+endif
+endif
+
+.PHONY: kubectl
+KUBECTL ?=  $(shell pwd)/bin/kubectl
+kubectl:
+ifeq (,$(wildcard $(KUBECTL)))
+ifeq (,$(shell which kubectl 2>/dev/null))
+	@{ \
+	set -e ;\
+	mkdir -p $(dir $(KUBECTL)) ;\
+	curl -sSLo $(KUBECTL) https://dl.k8s.io/release/$(shell curl -L -s https://dl.k8s.io/release/stable.txt)/bin/$(OS)/$(ARCH)/kubectl ;\
+	chmod +x $(KUBECTL) ;\
+	}
+else
+KUBECTL = $(shell which kubectl)
+endif
+endif
+
+.PHONY: helm
+HELM ?=  $(shell pwd)/bin/helm
+HELM_VERSION ?= 3.10.1
+helm:
+ifeq (,$(wildcard $(HELM)))
+ifeq (,$(shell which helm 2>/dev/null))
+	@{ \
+	set -e ;\
+	mkdir -p $(dir $(HELM)) $(HELM)-install ;\
+	curl -sSLo $(HELM)-install/helm.tar.gz https://get.helm.sh/helm-v$(HELM_VERSION)-$(OS)-$(ARCH).tar.gz ;\
+	tar xvfz $(HELM)-install/helm.tar.gz -C $(HELM)-install ;\
+	cp $(HELM)-install/$(OS)-$(ARCH)/helm $(HELM) ;\
+	rm -r $(HELM)-install ;\
+	chmod +x $(HELM) ;\
+	}
+else
+HELM = $(shell which helm)
+endif
+endif
+
+.PHONY: install-tools
+install-tools: minikube opm mockgen kubectl-slice yq kustomize controller-gen gen-mocks operator-sdk kubectl helm
+	@echo
+	@echo run '`eval $$(make local-env)`' to configure your shell to use tools in the ./bin folder
+
+.PHONY: local-env
+local-env:
+	@echo export PATH=$$PATH:$(shell pwd)/bin
+
 all: build
