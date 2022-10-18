@@ -224,21 +224,17 @@ endif
 HELM ?=  $(shell pwd)/bin/helm
 HELM_VERSION ?= 3.10.1
 helm:
-ifeq (,$(wildcard $(HELM)))
-ifeq (,$(shell which helm 2>/dev/null))
-	@{ \
-	set -e ;\
-	mkdir -p $(dir $(HELM)) $(HELM)-install ;\
-	curl -sSLo $(HELM)-install/helm.tar.gz https://get.helm.sh/helm-v$(HELM_VERSION)-$(OS)-$(ARCH).tar.gz ;\
-	tar xvfz $(HELM)-install/helm.tar.gz -C $(HELM)-install ;\
-	cp $(HELM)-install/$(OS)-$(ARCH)/helm $(HELM) ;\
-	rm -r $(HELM)-install ;\
-	chmod +x $(HELM) ;\
+	@(($$(command -v helm >/dev/null) && [[ $$(helm version --short) =~ 'v$(HELM_VERSION)' ]]) && ln -s $$(command -v helm) $(HELM) || true)
+	@([ -f '$(HELM)' ] && [[ $$($(HELM) version --short) =~ 'v$(HELM_VERSION)' ]] && echo "helm $(HELM_VERSION) found") || { \
+		set -e ;\
+		mkdir -p $(dir $(HELM)) $(HELM)-install ;\
+		curl -sSLo $(HELM)-install/helm.tar.gz https://get.helm.sh/helm-v$(HELM_VERSION)-$(OS)-$(ARCH).tar.gz ;\
+		tar xvfz $(HELM)-install/helm.tar.gz -C $(HELM)-install >/dev/null ;\
+		rm -f $(HELM) ; \
+		cp $(HELM)-install/$(OS)-$(ARCH)/helm $(HELM) ;\
+		rm -r $(HELM)-install ;\
+		chmod +x $(HELM) ;\
 	}
-else
-HELM = $(shell which helm)
-endif
-endif
 
 .PHONY: install-tools
 install-tools: minikube opm mockgen kubectl-slice yq kustomize controller-gen gen-mocks operator-sdk kubectl helm
@@ -247,6 +243,6 @@ install-tools: minikube opm mockgen kubectl-slice yq kustomize controller-gen ge
 
 .PHONY: local-env
 local-env:
-	@echo export PATH=$$PATH:$(shell pwd)/bin
+	@echo export PATH=$(shell pwd)/bin:$$PATH
 
 all: build
