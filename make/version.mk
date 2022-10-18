@@ -13,6 +13,9 @@ OPERATOR_IMAGE_SHA_REF ?= $(shell $(CONTAINER_RUNTIME) inspect --format='{{index
 OPERATOR_BUNDLE_IMAGE_REF ?= $(OPERATOR_REPO_REF):bundle-$(VERSION)-$(GIT_COMMIT_ID)
 OPERATOR_INDEX_IMAGE_REF ?= $(OPERATOR_REPO_REF):index
 
+HELM_VERSION ?= 3.10.1
+
+
 .PHONY: operator-repo-ref
 # Prints operator repo ref
 operator-repo-ref:

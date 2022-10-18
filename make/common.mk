@@ -222,9 +222,8 @@ endif
 
 .PHONY: helm
 HELM ?=  $(shell pwd)/bin/helm
-HELM_VERSION ?= 3.10.1
 helm:
-	@(($$(command -v helm >/dev/null) && [[ $$(helm version --short) =~ 'v$(HELM_VERSION)' ]]) && ln -s $$(command -v helm) $(HELM) || true)
+	@(($$(command -v helm >/dev/null) && [[ $$(command -v helm) != "$(HELM)" ]] && [[ $$(helm version --short) =~ 'v$(HELM_VERSION)' ]]) && ln -s $$(command -v helm) $(HELM) || true)
 	@([ -f '$(HELM)' ] && [[ $$($(HELM) version --short) =~ 'v$(HELM_VERSION)' ]] && echo "helm $(HELM_VERSION) found") || { \
 		set -e ;\
 		mkdir -p $(dir $(HELM)) $(HELM)-install ;\
