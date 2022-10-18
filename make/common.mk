@@ -119,19 +119,9 @@ generate: controller-gen
 gen-mocks: mockgen
 	PATH=$(shell pwd)/bin:$(shell printenv PATH) $(GO) generate $(V_FLAG) ./...
 
-# Download controller-gen locally if necessary
-CONTROLLER_GEN = $(shell pwd)/bin/controller-gen
-controller-gen:
-	$(call go-install-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.7.0)
-
-# Download kustomize locally if necessary
-KUSTOMIZE = $(shell pwd)/bin/kustomize
-kustomize:
-	$(call go-install-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v4@v4.5.4)
-
 # go-install-tool will 'go install' any package $2 and install it to $1.
 define go-install-tool
-@[ -f $(1) ] || { \
+[ -f $(1) ] || { \
 set -e ;\
 TMP_DIR=$$(mktemp -d) ;\
 cd $$TMP_DIR ;\
@@ -142,17 +132,86 @@ rm -rf $$TMP_DIR ;\
 }
 endef
 
+# Download controller-gen locally if necessary
+CONTROLLER_GEN = $(shell pwd)/bin/controller-gen
+controller-gen:
+	@(($$(command -v controller-gen >/dev/null) && \
+		[[ $$(command -v controller-gen) != "$(CONTROLLER_GEN)" ]] && \
+		[[ $$(controller-gen --version | cut -d' ' -f 2) =~ 'v$(CONTROLLER_GEN_VERSION)' ]]) && \
+		rm -f $(CONTROLLER_GEN) && ln -s $$(command -v controller-gen) $(CONTROLLER_GEN) || true)
+	@([ -f '$(CONTROLLER_GEN)' ] && \
+		[[ $$($(CONTROLLER_GEN) --version | cut -d' ' -f 2) =~ 'v$(CONTROLLER_GEN_VERSION)' ]] \
+		&& echo "controller-gen $(CONTROLLER_GEN_VERSION) found") || { \
+			rm -f $(CONTROLLER_GEN) ;\
+			$(call go-install-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v$(CONTROLLER_GEN_VERSION)) \
+		}
+
+
 YQ = $(shell pwd)/bin/yq
 yq:
-	$(call go-install-tool,$(YQ),github.com/mikefarah/yq/v4@v4.26.1)
+	@(($$(command -v yq >/dev/null) && \
+		[[ $$(command -v yq) != "$(YQ)" ]] && \
+		[[ $$(yq --version | cut -d' ' -f 3) =~ 'v$(YQ_VERSION)' ]]) && \
+		rm -f $(YQ) && ln -s $$(command -v yq) $(YQ) || true)
+	@([ -f '$(YQ)' ] && \
+		[[ $$($(YQ) --version | cut -d' ' -f 3) =~ 'v$(YQ_VERSION)' ]] \
+		&& echo "yq $(YQ_VERSION) found") || { \
+			rm -f $(YQ) ;\
+			$(call go-install-tool,$(YQ),github.com/mikefarah/yq/v4@v$(YQ_VERSION)) ;\
+		}
 
 KUBECTL_SLICE = $(shell pwd)/bin/kubectl-slice
 kubectl-slice:
-	$(call go-install-tool,$(KUBECTL_SLICE),github.com/patrickdappollonio/kubectl-slice@v1.1.0)
+	@(($$(command -v kubectl-slice >/dev/null) && \
+	[[ $$(command -v kubectl-slice) != "$(KUBECTL_SLICE)" ]] && \
+		[[ $$(kubectl-slice --version | cut -d' ' -f 3) =~ '$(KUBECTL_SLICE_VERSION)' ]]) && \
+		rm -f $(KUBECTL_SLICE) && ln -s $$(command -v kubectl-slice) $(KUBECTL_SLICE) || true)
+	@([ -f '$(KUBECTL_SLICE)' ] && \
+		[[ $$($(KUBECTL_SLICE) --version | cut -d' ' -f 3) =~ '$(KUBECTL_SLICE_VERSION)' ]] \
+		&& echo "kubectl-slice $(KUBECTL_SLICE_VERSION) found") || { \
+			rm -f $(KUBECTL_SLICE) ;\
+			arch=$$(case "$(ARCH)" in "amd64") echo "x86_64" ;; *) echo "$(ARCH)" ;; esac) ;\
+			mkdir -p $(KUBECTL_SLICE)-install ;\
+			curl -sSLo $(KUBECTL_SLICE)-install/kubectl-slice.tar.gz https://github.com/patrickdappollonio/kubectl-slice/releases/download/v$(KUBECTL_SLICE_VERSION)/kubectl-slice_$(KUBECTL_SLICE_VERSION)_$(OS)_$${arch}.tar.gz ;\
+			tar xvfz $(KUBECTL_SLICE)-install/kubectl-slice.tar.gz -C $(KUBECTL_SLICE)-install/ > /dev/null ;\
+			mv $(KUBECTL_SLICE)-install/kubectl-slice $(KUBECTL_SLICE) ;\
+			rm -rf $(KUBECTL_SLICE)-install ;\
+		}
+
 
 MOCKGEN = $(shell pwd)/bin/mockgen
 mockgen:
-	$(call go-install-tool,$(MOCKGEN),github.com/golang/mock/mockgen@v1.6.0)
+	@(($$(command -v mockgen >/dev/null) && \
+		[[ $$(command -v mockgen) != "$(MOCKGEN)" ]] && \
+		[[ $$(mockgen --version | cut -d' ' -f 3) =~ 'v$(MOCKGEN_VERSION)' ]]) && \
+		rm -f $(MOCKGEN) && ln -s $$(command -v mockgen) $(MOCKGEN) || true)
+	@([ -f '$(MOCKGEN)' ] && \
+		[[ $$($(MOCKGEN) --version | cut -d' ' -f 3) =~ 'v$(MOCKGEN_VERSION)' ]] \
+		&& echo "mockgen $(MOCKGEN_VERSION) found") || { \
+			rm -f $(MOCKGEN) ;\
+			$(call go-install-tool,$(MOCKGEN),github.com/golang/mock/mockgen@v$(MOCKGEN_VERSION)) \
+		}
+	
+
+KUSTOMIZE = $(shell pwd)/bin/kustomize
+kustomize:
+	@(($$(command -v kustomize >/dev/null) && \
+		[[ $$(command -v kustomize) != "$(KUSTOMIZE)" ]] && \
+		[[ $$(kustomize version | cut -d' ' -f 1 | cut -d'/' -f 2) =~ 'v$(KUSTOMIZE_VERSION)' ]]) && \
+		rm -f $(KUSTOMIZE) && ln -s $$(command -v kustomize) $(KUSTOMIZE) || true)
+	@([ -f '$(KUSTOMIZE)' ] && \
+		[[ $$($(KUSTOMIZE) version | cut -d' ' -f 1 | cut -d'/' -f 2) =~ 'v$(KUSTOMIZE_VERSION)' ]] \
+		&& echo "kustomize $(KUSTOMIZE_VERSION) found") || { \
+			set -e ;\
+			mkdir -p $(dir $(KUSTOMIZE)) ;\
+			rm -f $(KUSTOMIZE) ; \
+			mkdir -p $(KUSTOMIZE)-install ;\
+			curl -sSLo $(KUSTOMIZE)-install/kustomize.tar.gz https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv$(KUSTOMIZE_VERSION)/kustomize_v$(KUSTOMIZE_VERSION)_$(OS)_$(ARCH).tar.gz ;\
+			tar xzvf $(KUSTOMIZE)-install/kustomize.tar.gz -C $(KUSTOMIZE)-install/ >/dev/null ;\
+			mv $(KUSTOMIZE)-install/kustomize $(KUSTOMIZE) ;\
+			rm -rf $(KUSTOMIZE)-install ;\
+			chmod +x $(KUSTOMIZE) ;\
+		}
 
 .PHONY: opm
 OPM ?=  $(shell pwd)/bin/opm
