@@ -20,7 +20,7 @@ deploy-cert-manager:
 
 .PHONY: deploy
 ## Deploy controller in the configured Kubernetes cluster in ~/.kube/config
-deploy: manifests kustomize image push-image-unauth deploy-cert-manager
+deploy: manifests kustomize image deploy-cert-manager
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(OPERATOR_IMAGE_REF)
 	$(KUSTOMIZE) build config/default | kubectl apply -f -
 
