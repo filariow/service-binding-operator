@@ -157,73 +157,78 @@ mockgen:
 .PHONY: opm
 OPM ?=  $(shell pwd)/bin/opm
 opm:
-ifeq (,$(wildcard $(OPM)))
-ifeq (,$(shell which opm 2>/dev/null))
-	@{ \
-	set -e ;\
-	mkdir -p $(dir $(OPM)) ;\
-	curl -sSLo $(OPM) https://github.com/operator-framework/operator-registry/releases/download/v1.22.0/$(OS)-$(ARCH)-opm ;\
-	chmod +x $(OPM) ;\
-	}
-else
-OPM = $(shell which opm)
-endif
-endif
+	@(($$(command -v opm >/dev/null) && \
+		[[ $$(command -v opm) != "$(OPM)" ]] && \
+		[[ $$(opm version | cut -d'"' -f 2) =~ 'v$(OPM_VERSION)' ]]) && \
+		rm -f $(OPM) && ln -s $$(command -v opm) $(OPM) || true)
+	@([ -f '$(OPM)' ] && \
+		[[ $$($(OPM) version | cut -d'"' -f 2) =~ 'v$(OPM_VERSION)' ]] \
+		&& echo "opm $(OPM_VERSION) found") || { \
+			set -e ;\
+			mkdir -p $(dir $(OPM)) ;\
+			rm -f $(OPM) ; \
+			curl -sSLo $(OPM) https://github.com/operator-framework/operator-registry/releases/download/v$(OPM_VERSION)/$(OS)-$(ARCH)-opm ;\
+			chmod +x $(OPM) ;\
+		}
 
 .PHONY: minikube
 MINIKUBE ?=  $(shell pwd)/bin/minikube
-MINIKUBE_VERSION ?= v1.26.1
 minikube:
-ifeq (,$(wildcard $(MINIKUBE)))
-ifeq (,$(shell which minikube 2>/dev/null))
-	@{ \
-	set -e ;\
-	mkdir -p $(dir $(MINIKUBE)) ;\
-	curl -sSLo $(MINIKUBE)  https://storage.googleapis.com/minikube/releases/$(MINIKUBE_VERSION)/minikube-$(OS)-$(ARCH) ;\
-	chmod +x $(MINIKUBE) ;\
-	}
-else
-MINIKUBE = $(shell which minikube)
-endif
-endif
+	@(($$(command -v minikube >/dev/null) && \
+		[[ $$(command -v minikube) != "$(MINIKUBE)" ]] && \
+		[[ $$(minikube version --short) =~ 'v$(MINIKUBE_VERSION)' ]]) && \
+		rm -f $(MINIKUBE) && ln -s $$(command -v minikube) $(MINIKUBE) || true)
+	@([ -f '$(MINIKUBE)' ] && \
+		[[ $$($(MINIKUBE) version --short) =~ 'v$(MINIKUBE_VERSION)' ]] \
+		&& echo "minikube $(MINIKUBE_VERSION) found") || { \
+			set -e ;\
+			mkdir -p $(dir $(MINIKUBE)) ;\
+			rm -f $(MINIKUBE) ; \
+			curl -sSLo $(MINIKUBE)  https://storage.googleapis.com/minikube/releases/v$(MINIKUBE_VERSION)/minikube-$(OS)-$(ARCH) ;\
+			chmod +x $(MINIKUBE) ;\
+		}
 
 .PHONY: operator-sdk
 OPERATOR_SDK ?=  $(shell pwd)/bin/operator-sdk
-OPERATOR_SDK_STABLE ?= 1.24.0
 operator-sdk:
-ifeq (,$(wildcard $(OPERATOR_SDK)))
-ifeq (,$(shell which operator-sdk 2>/dev/null))
-	@{ \
-	set -e ;\
-	mkdir -p $(dir $(OPERATOR_SDK)) ;\
-	curl -sSLo $(OPERATOR_SDK) https://github.com/operator-framework/operator-sdk/releases/download/v$(OPERATOR_SDK_STABLE)/operator-sdk_$(OS)_$(ARCH) ;\
-	chmod +x $(OPERATOR_SDK) ;\
-	}
-else
-OPERATOR_SDK = $(shell which operator-sdk)
-endif
-endif
+	@(($$(command -v operator-sdk >/dev/null) && \
+		[[ $$(command -v operator-sdk) != "$(OPERATOR_SDK)" ]] && \
+		[[ $$(operator-sdk version | cut -d',' -f 1 | cut -d'"' -f 2) =~ 'v$(OPERATOR_SDK_VERSION)' ]]) && \
+		rm -f $(OPERATOR_SDK) && ln -s $$(command -v operator-sdk) $(OPERATOR_SDK) || true)
+	@([ -f '$(OPERATOR_SDK)' ] && \
+		[[ $$($(OPERATOR_SDK) version | cut -d',' -f 1 | cut -d'"' -f 2) =~ 'v$(OPERATOR_SDK_VERSION)' ]] \
+		&& echo "operator-sdk $(OPERATOR_SDK_VERSION) found") || { \
+			set -e ;\
+			mkdir -p $(dir $(OPERATOR_SDK)) ;\
+			rm -f $(OPERATOR_SDK) ; \
+			curl -sSLo $(OPERATOR_SDK) https://github.com/operator-framework/operator-sdk/releases/download/v$(OPERATOR_SDK_VERSION)/operator-sdk_$(OS)_$(ARCH) ;\
+			chmod +x $(OPERATOR_SDK) ;\
+		}
 
 .PHONY: kubectl
 KUBECTL ?=  $(shell pwd)/bin/kubectl
-kubectl:
-ifeq (,$(wildcard $(KUBECTL)))
-ifeq (,$(shell which kubectl 2>/dev/null))
-	@{ \
-	set -e ;\
-	mkdir -p $(dir $(KUBECTL)) ;\
-	curl -sSLo $(KUBECTL) https://dl.k8s.io/release/$(shell curl -L -s https://dl.k8s.io/release/stable.txt)/bin/$(OS)/$(ARCH)/kubectl ;\
-	chmod +x $(KUBECTL) ;\
-	}
-else
-KUBECTL = $(shell which kubectl)
-endif
-endif
+kubectl: yq
+	@(($$(command -v kubectl >/dev/null) && \
+		[[ $$(command -v kubectl) != "$(KUBECTL)" ]] && \
+		[[ $$(kubectl version --client --output yaml | $(YQ) eval '.clientVersion.gitVersion' -) =~ 'v$(KUBECTL_VERSION)' ]]) && \
+		rm -f $(KUBECTL) && ln -s $$(command -v kubectl) $(KUBECTL) || true)
+	@([ -f '$(KUBECTL)' ] && \
+		[[ $$($(KUBECTL) version --client --output yaml | $(YQ) eval '.clientVersion.gitVersion' -) =~ 'v$(KUBECTL_VERSION)' ]] \
+		&& echo "kubectl $(KUBECTL_VERSION) found") || { \
+			set -e ;\
+			mkdir -p $(dir $(KUBECTL)) ;\
+			rm -f $(KUBECTL) ; \
+			curl -sSLo $(KUBECTL) https://dl.k8s.io/release/v$(KUBECTL_VERSION)/bin/$(OS)/$(ARCH)/kubectl ;\
+			chmod +x $(KUBECTL) ;\
+		}
 
 .PHONY: helm
 HELM ?=  $(shell pwd)/bin/helm
 helm:
-	@(($$(command -v helm >/dev/null) && [[ $$(command -v helm) != "$(HELM)" ]] && [[ $$(helm version --short) =~ 'v$(HELM_VERSION)' ]]) && ln -s $$(command -v helm) $(HELM) || true)
+	@(($$(command -v helm >/dev/null) && \
+		[[ $$(command -v helm) != "$(HELM)" ]] && \
+		[[ $$(helm version --short) =~ 'v$(HELM_VERSION)' ]]) && \
+		rm -f $(HELM) && ln -s $$(command -v helm) $(HELM) || true)
 	@([ -f '$(HELM)' ] && [[ $$($(HELM) version --short) =~ 'v$(HELM_VERSION)' ]] && echo "helm $(HELM_VERSION) found") || { \
 		set -e ;\
 		mkdir -p $(dir $(HELM)) $(HELM)-install ;\
