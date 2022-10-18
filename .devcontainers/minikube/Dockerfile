@@ -22,4 +22,3 @@ RUN echo "${UNAME}:x:${UID}:${GID}::/home/${UNAME}:" >> /etc/passwd && \
         touch /var/run/docker.sock && \
         chown ${UNAME}:docker /var/run/docker.sock
 
-# USER $UNAME
