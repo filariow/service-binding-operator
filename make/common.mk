@@ -125,11 +125,14 @@ define go-install-tool
 set -e ;\
 TMP_DIR=$$(mktemp -d) ;\
 cd $$TMP_DIR ;\
-go mod init tmp ;\
-echo "Downloading $(2)" ;\
+go mod init tmp 2>/dev/null ;\
 GOBIN=$(PROJECT_DIR)/bin go install $(2) ;\
 rm -rf $$TMP_DIR ;\
 }
+endef
+
+define output-install
+echo "$(1)@$(2) installed"
 endef
 
 # Download controller-gen locally if necessary
@@ -143,7 +146,8 @@ controller-gen:
 		[[ $$($(CONTROLLER_GEN) --version | cut -d' ' -f 2) =~ 'v$(CONTROLLER_GEN_VERSION)' ]] \
 		&& echo "controller-gen $(CONTROLLER_GEN_VERSION) found") || { \
 			rm -f $(CONTROLLER_GEN) ;\
-			$(call go-install-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v$(CONTROLLER_GEN_VERSION)) \
+			$(call go-install-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v$(CONTROLLER_GEN_VERSION)) ;\
+			$(call output-install,controller-gen,$(CONTROLLER_GEN_VERSION)) ;\
 		}
 
 
@@ -151,13 +155,14 @@ YQ = $(shell pwd)/bin/yq
 yq:
 	@(($$(command -v yq >/dev/null) && \
 		[[ $$(command -v yq) != "$(YQ)" ]] && \
-		[[ $$(yq --version | cut -d' ' -f 3) =~ 'v$(YQ_VERSION)' ]]) && \
+		[[ $$(yq --version | cut -d' ' -f 3) =~ '$(YQ_VERSION)' ]]) && \
 		rm -f $(YQ) && ln -s $$(command -v yq) $(YQ) || true)
 	@([ -f '$(YQ)' ] && \
-		[[ $$($(YQ) --version | cut -d' ' -f 3) =~ 'v$(YQ_VERSION)' ]] \
+		[[ $$($(YQ) --version | cut -d' ' -f 3) =~ '$(YQ_VERSION)' ]] \
 		&& echo "yq $(YQ_VERSION) found") || { \
 			rm -f $(YQ) ;\
 			$(call go-install-tool,$(YQ),github.com/mikefarah/yq/v4@v$(YQ_VERSION)) ;\
+			$(call output-install,yq,$(YQ_VERSION)) ;\
 		}
 
 KUBECTL_SLICE = $(shell pwd)/bin/kubectl-slice
@@ -176,6 +181,7 @@ kubectl-slice:
 			tar xvfz $(KUBECTL_SLICE)-install/kubectl-slice.tar.gz -C $(KUBECTL_SLICE)-install/ > /dev/null ;\
 			mv $(KUBECTL_SLICE)-install/kubectl-slice $(KUBECTL_SLICE) ;\
 			rm -rf $(KUBECTL_SLICE)-install ;\
+			$(call output-install,kubectl-slice,$(KUBECTL_SLICE_VERSION)) ;\
 		}
 
 
@@ -189,7 +195,8 @@ mockgen:
 		[[ $$($(MOCKGEN) --version | cut -d' ' -f 3) =~ 'v$(MOCKGEN_VERSION)' ]] \
 		&& echo "mockgen $(MOCKGEN_VERSION) found") || { \
 			rm -f $(MOCKGEN) ;\
-			$(call go-install-tool,$(MOCKGEN),github.com/golang/mock/mockgen@v$(MOCKGEN_VERSION)) \
+			$(call go-install-tool,$(MOCKGEN),github.com/golang/mock/mockgen@v$(MOCKGEN_VERSION)) ;\
+			$(call output-install,mockgen,$(MOCKGEN_VERSION)) ;\
 		}
 	
 
@@ -211,6 +218,7 @@ kustomize:
 			mv $(KUSTOMIZE)-install/kustomize $(KUSTOMIZE) ;\
 			rm -rf $(KUSTOMIZE)-install ;\
 			chmod +x $(KUSTOMIZE) ;\
+			$(call output-install,kustomize,$(KUSTOMIZE_VERSION)) ;\
 		}
 
 .PHONY: opm
@@ -228,6 +236,7 @@ opm:
 			rm -f $(OPM) ; \
 			curl -sSLo $(OPM) https://github.com/operator-framework/operator-registry/releases/download/v$(OPM_VERSION)/$(OS)-$(ARCH)-opm ;\
 			chmod +x $(OPM) ;\
+			$(call output-install,opm,$(OPM_VERSION)) ;\
 		}
 
 .PHONY: minikube
@@ -245,6 +254,7 @@ minikube:
 			rm -f $(MINIKUBE) ; \
 			curl -sSLo $(MINIKUBE)  https://storage.googleapis.com/minikube/releases/v$(MINIKUBE_VERSION)/minikube-$(OS)-$(ARCH) ;\
 			chmod +x $(MINIKUBE) ;\
+			$(call output-install,minikube,$(MINIKUBE_VERSION)) ;\
 		}
 
 .PHONY: operator-sdk
@@ -262,6 +272,7 @@ operator-sdk:
 			rm -f $(OPERATOR_SDK) ; \
 			curl -sSLo $(OPERATOR_SDK) https://github.com/operator-framework/operator-sdk/releases/download/v$(OPERATOR_SDK_VERSION)/operator-sdk_$(OS)_$(ARCH) ;\
 			chmod +x $(OPERATOR_SDK) ;\
+			$(call output-install,operator-sdk,$(OPERATOR_SDK_VERSION)) ;\
 		}
 
 .PHONY: kubectl
@@ -279,6 +290,7 @@ kubectl: yq
 			rm -f $(KUBECTL) ; \
 			curl -sSLo $(KUBECTL) https://dl.k8s.io/release/v$(KUBECTL_VERSION)/bin/$(OS)/$(ARCH)/kubectl ;\
 			chmod +x $(KUBECTL) ;\
+			$(call output-install,kubectl,$(KUBECTL_VERSION)) ;\
 		}
 
 .PHONY: helm
@@ -297,10 +309,11 @@ helm:
 		cp $(HELM)-install/$(OS)-$(ARCH)/helm $(HELM) ;\
 		rm -r $(HELM)-install ;\
 		chmod +x $(HELM) ;\
+		$(call output-install,helm,$(HELM_VERSION)) ;\
 	}
 
 .PHONY: install-tools
-install-tools: minikube opm mockgen kubectl-slice yq kustomize controller-gen gen-mocks operator-sdk kubectl helm
+install-tools: controller-gen helm kubectl kubectl-slice kustomize minikube mockgen operator-sdk opm yq
 	@echo
 	@echo run '`eval $$(make local-env)`' to configure your shell to use tools in the ./bin folder
 
