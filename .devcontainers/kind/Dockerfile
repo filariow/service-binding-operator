@@ -1,3 +1,4 @@
+# Build base image with project dependencies
 FROM fedora:36 AS base
 RUN dnf install -y 'dnf-command(config-manager)' && \
         dnf install -y golang make jq helm kubernetes-client git && \
@@ -7,17 +8,18 @@ RUN dnf install -y 'dnf-command(config-manager)' && \
 
 COPY --from=quay.io/operator-framework/operator-sdk:latest /usr/local/bin/operator-sdk /usr/local/bin/operator-sdk
 
-
+# Download project dependencies
 FROM base AS deps
 WORKDIR /deps
 COPY Makefile Makefile
 COPY make make
 RUN make install-tools
 
-
+# Build final image
 FROM base AS final
 COPY --from=deps /deps/bin/* /usr/local/bin/
 
+## Setup local user
 ARG UID
 ARG GID
 ARG UNAME
@@ -26,8 +28,5 @@ RUN groupadd -g ${GID} -o ${UNAME} && \
         usermod -aG docker ${UNAME}
 USER $UNAME
 
-WORKDIR /startup
-COPY .devcontainers/kind/* .
-
-CMD cd /startup && ./start-kind.sh && sleep infinity
+CMD sleep infinity
 
