@@ -1,8 +1,7 @@
 # Build base image with project dependencies
 FROM fedora:36 AS base
 RUN dnf install -y 'dnf-command(config-manager)' && \
-        dnf install -y golang make jq helm kubernetes-client git && \
-        dnf install -y moby-engine && \
+        dnf install -y golang make jq git moby-engine && \
         go install sigs.k8s.io/kind@v0.16.0 && \
         install /root/go/bin/kind /usr/local/bin/kind
 
@@ -13,7 +12,7 @@ FROM base AS deps
 WORKDIR /deps
 COPY Makefile Makefile
 COPY make make
-RUN make install-tools
+RUN make kubectl && make operator-sdk
 
 # Build final image
 FROM base AS final
@@ -28,5 +27,6 @@ RUN groupadd -g ${GID} -o ${UNAME} && \
         usermod -aG docker ${UNAME}
 USER $UNAME
 
-CMD sleep infinity
+COPY .devcontainers/kind/start-kind.sh /startup/start-kind.sh
+CMD /startup/start-kind.sh && sleep infinity
 

@@ -1,12 +1,12 @@
 version: "3"
 services:
   app:
-    user: "${UID}:${GID}"
+    user: "${UID:-4210986}:${GID:-4210986}"
     build:
       args:
-        UID: ${UID}
-        GID: ${GID}
-        UNAME: ${USER}
+        UID: ${UID:-4210986}
+        GID: ${GID:-4210986}
+        UNAME: ${USER:-filario}
       context: ../../
       dockerfile: .devcontainers/kind/Dockerfile
     working_dir: /sbo
