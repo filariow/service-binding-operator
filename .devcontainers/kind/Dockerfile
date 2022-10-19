@@ -5,8 +5,6 @@ RUN dnf install -y 'dnf-command(config-manager)' && \
         go install sigs.k8s.io/kind@v0.16.0 && \
         install /root/go/bin/kind /usr/local/bin/kind
 
-COPY --from=quay.io/operator-framework/operator-sdk:latest /usr/local/bin/operator-sdk /usr/local/bin/operator-sdk
-
 # Download project dependencies
 FROM base AS deps
 WORKDIR /deps
@@ -27,6 +25,7 @@ RUN groupadd -g ${GID} -o ${UNAME} && \
         usermod -aG docker ${UNAME}
 USER $UNAME
 
-COPY .devcontainers/kind/start-kind.sh /startup/start-kind.sh
-CMD /startup/start-kind.sh && sleep infinity
-
+COPY .devcontainers/kind/start-kind.sh /startup/
+COPY .devcontainers/kind/kind-config.yaml /startup/
+COPY .devcontainers/kind/docker-daemon.json /startup/
+CMD bash -c "cd /startup && /startup/start-kind.sh" && sleep infinity

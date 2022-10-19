@@ -21,9 +21,9 @@ services:
     depends_on:
       dind:
         condition: service_healthy
-    command:
-      - sleep
-      - infinity
+    # command:
+    #   - sleep
+    #   - infinity
 
   dind:
     hostname: kubernetes
