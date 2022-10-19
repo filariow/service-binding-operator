@@ -126,196 +126,218 @@ set -e ;\
 TMP_DIR=$$(mktemp -d) ;\
 cd $$TMP_DIR ;\
 go mod init tmp 2>/dev/null ;\
-GOBIN=$(PROJECT_DIR)/bin go install $(2) ;\
+GOBIN=$(PROJECT_DIR)/bin go install $(2)@v$(3) ;\
 rm -rf $$TMP_DIR ;\
+echo "$$(basename $(1))@v$(3) installed" ;\
 }
 endef
 
 define output-install
-echo "$(1)@$(2) installed"
+echo "$(1)@v$(2) installed"
 endef
 
-define check-installed
-($$(command -v $(1) >/dev/null) && \
-	[[ $$(command -v $(1)) != "$(2)" ]] && \
-	[[ $$($$(command -v $(1)) $(3)) =~ '$(4)' ]]) && \
-	rm -f $(2) && ln -s $$(command -v $(1)) $(2) || true ;\
-([ -f '$(2)' ] && [[ $$($(2) $(3)) =~ '$(4)' ]] && echo "$(1) $(4) found") || { \
-	rm -f $(2) ;
-endef
-
-# Download controller-gen locally if necessary
 CONTROLLER_GEN = $(shell pwd)/bin/controller-gen
 CONTROLLER_GEN_VERSION ?= 0.7.0
-CONTROLLER_GEN_LOCAL_VERSION := $(shell [ -f $(CONTROLLER_GEN) ] && $(CONTROLLER_GEN) --version | cut -d' ' -f 2 || echo "")
-CONTROLLER_GEN_HOST_VERSION := $(shell command -v controller-gen >/dev/null && controller-gen --version | cut -d' ' -f 2 || echo "")
-
+CONTROLLER_GEN_LOCAL_VERSION := $(shell [ -f $(CONTROLLER_GEN) ] && $(CONTROLLER_GEN) --version | cut -d' ' -f 2)
+CONTROLLER_GEN_HOST_VERSION := $(shell command -v controller-gen >/dev/null && controller-gen --version | cut -d' ' -f 2)
 controller-gen:
-ifneq ($(CONTROLLER_GEN_VERSION), $(CONTROLLER_GEN_LOCAL_VERSION))
+ifneq (v$(CONTROLLER_GEN_VERSION), $(CONTROLLER_GEN_LOCAL_VERSION))
 	@rm -f $(CONTROLLER_GEN)
-ifeq ($(CONTROLLER_GEN_VERSION),$(CONTROLLER_GEN_HOST_VERSION))
-	@ln -s $$(command -v controller-gen) $(CONTROLLER_GEN) ;\
+ifeq (v$(CONTROLLER_GEN_VERSION),$(CONTROLLER_GEN_HOST_VERSION))
+	@ln -s $$(command -v controller-gen) $(CONTROLLER_GEN)
 	@echo "controller-gen found at $$(command -v controller-gen)"
 else
-	@$(call go-install-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v$(CONTROLLER_GEN_VERSION))
-	@$(call output-install,controller-gen,$(CONTROLLER_GEN_VERSION))
+	@$(call go-install-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen,$(CONTROLLER_GEN_VERSION))
 endif
 endif
+
 
 YQ = $(shell pwd)/bin/yq
 YQ_VERSION ?= 4.9.8
 YQ_LOCAL_VERSION := $(shell [ -f $(YQ) ] && $(YQ) --version | cut -d' ' -f 3)
-YQ_HOST_VERSION := $(shell command -v yq >/dev/null && uq --version | cut -d' ' -f 3)
+YQ_HOST_VERSION := $(shell command -v yq >/dev/null && yq --version | cut -d' ' -f 3)
 yq:
-ifneq ($(CONTROLLER_GEN_VERSION), $(CONTROLLER_GEN_LOCAL_VERSION))
-	@rm -f $(CONTROLLER_GEN)
-ifeq ($(CONTROLLER_GEN_VERSION),$(CONTROLLER_GEN_HOST_VERSION))
-	@ln -s $$(command -v controller-gen) $(CONTROLLER_GEN) ;\
-	@echo "controller-gen found at $$(command -v controller-gen)"
+ifneq ($(YQ_VERSION), $(YQ_LOCAL_VERSION))
+	@rm -f $(YQ)
+ifeq ($(YQ_VERSION),$(YQ_HOST_VERSION))
+	@ln -s $$(command -v yq) $(YQ)
+	@echo "yq found at $$(command -v yq)"
 else
-	$(call go-install-tool,$(YQ),github.com/mikefarah/yq/v4@v$(YQ_VERSION)) ;\
-	$(call output-install,yq,$(YQ_VERSION)) ;\
+	@$(call go-install-tool,$(YQ),github.com/mikefarah/yq/v4,$(YQ_VERSION))
 endif
 endif
 
 KUBECTL_SLICE = $(shell pwd)/bin/kubectl-slice
+KUBECTL_SLICE_VERSION ?= 1.1.0
+KUBECTL_SLICE_LOCAL_VERSION := $(shell [ -f $(KUBECTL_SLICE) ] && $(KUBECTL_SLICE) --version | cut -d' ' -f 3)
+KUBECTL_SLICE_HOST_VERSION := $(shell command -v kubectl-slice >/dev/null && kubectl-slice --version | cut -d' ' -f 3)
 kubectl-slice:
-	@(($$(command -v kubectl-slice >/dev/null) && \
-	[[ $$(command -v kubectl-slice) != "$(KUBECTL_SLICE)" ]] && \
-		[[ $$(kubectl-slice --version | cut -d' ' -f 3) =~ '$(KUBECTL_SLICE_VERSION)' ]]) && \
-		rm -f $(KUBECTL_SLICE) && ln -s $$(command -v kubectl-slice) $(KUBECTL_SLICE) || true)
-	@([ -f '$(KUBECTL_SLICE)' ] && \
-		[[ $$($(KUBECTL_SLICE) --version | cut -d' ' -f 3) =~ '$(KUBECTL_SLICE_VERSION)' ]] \
-		&& echo "kubectl-slice $(KUBECTL_SLICE_VERSION) found") || { \
-			rm -f $(KUBECTL_SLICE) ;\
-			arch=$$(case "$(ARCH)" in "amd64") echo "x86_64" ;; *) echo "$(ARCH)" ;; esac) ;\
-			mkdir -p $(KUBECTL_SLICE)-install ;\
-			curl -sSLo $(KUBECTL_SLICE)-install/kubectl-slice.tar.gz https://github.com/patrickdappollonio/kubectl-slice/releases/download/v$(KUBECTL_SLICE_VERSION)/kubectl-slice_$(KUBECTL_SLICE_VERSION)_$(OS)_$${arch}.tar.gz ;\
-			tar xvfz $(KUBECTL_SLICE)-install/kubectl-slice.tar.gz -C $(KUBECTL_SLICE)-install/ > /dev/null ;\
-			mv $(KUBECTL_SLICE)-install/kubectl-slice $(KUBECTL_SLICE) ;\
-			rm -rf $(KUBECTL_SLICE)-install ;\
-			$(call output-install,kubectl-slice,$(KUBECTL_SLICE_VERSION)) ;\
-		}
-
+ifneq ($(KUBECTL_SLICE_VERSION), $(KUBECTL_SLICE_LOCAL_VERSION))
+	@rm -f $(KUBECTL_SLICE)
+ifeq ($(KUBECTL_SLICE_VERSION),$(KUBECTL_SLICE_HOST_VERSION))
+	@ln -s $$(command -v kubectl-slice) $(KUBECTL_SLICE)
+	@echo "kubectl-slice found at $$(command -v kubectl-slice)"
+else
+	@{ \
+		rm -f $(KUBECTL_SLICE) ;\
+		arch=$$(case "$(ARCH)" in "amd64") echo "x86_64" ;; *) echo "$(ARCH)" ;; esac) ;\
+		mkdir -p $(KUBECTL_SLICE)-install ;\
+		curl -sSLo $(KUBECTL_SLICE)-install/kubectl-slice.tar.gz https://github.com/patrickdappollonio/kubectl-slice/releases/download/v$(KUBECTL_SLICE_VERSION)/kubectl-slice_$(KUBECTL_SLICE_VERSION)_$(OS)_$${arch}.tar.gz ;\
+		tar xvfz $(KUBECTL_SLICE)-install/kubectl-slice.tar.gz -C $(KUBECTL_SLICE)-install/ > /dev/null ;\
+		mv $(KUBECTL_SLICE)-install/kubectl-slice $(KUBECTL_SLICE) ;\
+		rm -rf $(KUBECTL_SLICE)-install ;\
+		$(call output-install,kubectl-slice,$(KUBECTL_SLICE_VERSION)) ;\
+	}
+endif
+endif
 
 MOCKGEN = $(shell pwd)/bin/mockgen
+MOCKGEN_VERSION ?= 1.6.0
+MOCKGEN_LOCAL_VERSION := $(shell [ -f $(MOCKGEN) ] && $(MOCKGEN) --version | cut -d' ' -f 3)
+MOCKGEN_HOST_VERSION := $(shell command -v mockgen >/dev/null && mockgen --version | cut -d' ' -f 3)
 mockgen:
-	@(($$(command -v mockgen >/dev/null) && \
-		[[ $$(command -v mockgen) != "$(MOCKGEN)" ]] && \
-		[[ $$(mockgen --version | cut -d' ' -f 3) =~ 'v$(MOCKGEN_VERSION)' ]]) && \
-		rm -f $(MOCKGEN) && ln -s $$(command -v mockgen) $(MOCKGEN) || true)
-	@([ -f '$(MOCKGEN)' ] && \
-		[[ $$($(MOCKGEN) --version | cut -d' ' -f 3) =~ 'v$(MOCKGEN_VERSION)' ]] \
-		&& echo "mockgen $(MOCKGEN_VERSION) found") || { \
-			rm -f $(MOCKGEN) ;\
-			$(call go-install-tool,$(MOCKGEN),github.com/golang/mock/mockgen@v$(MOCKGEN_VERSION)) ;\
-			$(call output-install,mockgen,$(MOCKGEN_VERSION)) ;\
-		}
-	
+ifneq (v$(MOCKGEN_VERSION), $(MOCKGEN_LOCAL_VERSION))
+	@rm -f $(MOCKGEN)
+ifeq (v$(MOCKGEN_VERSION),$(MOCKGEN_HOST_VERSION))
+	@ln -s $$(command -v mockgen) $(MOCKGEN)
+	@echo "mockgen found at $$(command -v mockgen)"
+else
+	@$(call go-install-tool,$(MOCKGEN),github.com/golang/mock/mockgen,$(MOCKGEN_VERSION))
+endif
+endif
+
 
 KUSTOMIZE = $(shell pwd)/bin/kustomize
+KUSTOMIZE_VERSION ?= 4.5.4
+KUSTOMIZE_LOCAL_VERSION := $(shell [ -f $(KUSTOMIZE) ] && $(KUSTOMIZE) version | cut -d' ' -f 1 | cut -d'/' -f 2)
+KUSTOMIZE_HOST_VERSION := $(shell command -v kustomize >/dev/null && kustomize version | cut -d' ' -f 1 | cut -d'/' -f 2)
 kustomize:
-	@(($$(command -v kustomize >/dev/null) && \
-		[[ $$(command -v kustomize) != "$(KUSTOMIZE)" ]] && \
-		[[ $$(kustomize version | cut -d' ' -f 1 | cut -d'/' -f 2) =~ 'v$(KUSTOMIZE_VERSION)' ]]) && \
-		rm -f $(KUSTOMIZE) && ln -s $$(command -v kustomize) $(KUSTOMIZE) || true)
-	@([ -f '$(KUSTOMIZE)' ] && \
-		[[ $$($(KUSTOMIZE) version | cut -d' ' -f 1 | cut -d'/' -f 2) =~ 'v$(KUSTOMIZE_VERSION)' ]] \
-		&& echo "kustomize $(KUSTOMIZE_VERSION) found") || { \
-			set -e ;\
-			mkdir -p $(dir $(KUSTOMIZE)) ;\
-			rm -f $(KUSTOMIZE) ; \
-			mkdir -p $(KUSTOMIZE)-install ;\
-			curl -sSLo $(KUSTOMIZE)-install/kustomize.tar.gz https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv$(KUSTOMIZE_VERSION)/kustomize_v$(KUSTOMIZE_VERSION)_$(OS)_$(ARCH).tar.gz ;\
-			tar xzvf $(KUSTOMIZE)-install/kustomize.tar.gz -C $(KUSTOMIZE)-install/ >/dev/null ;\
-			mv $(KUSTOMIZE)-install/kustomize $(KUSTOMIZE) ;\
-			rm -rf $(KUSTOMIZE)-install ;\
-			chmod +x $(KUSTOMIZE) ;\
-			$(call output-install,kustomize,$(KUSTOMIZE_VERSION)) ;\
-		}
+ifneq (v$(KUSTOMIZE_VERSION), $(KUSTOMIZE_LOCAL_VERSION))
+	@rm -f $(KUSTOMIZE)
+ifeq (v$(KUSTOMIZE_VERSION),$(KUSTOMIZE_HOST_VERSION))
+	@ln -s $$(command -v kustomize) $(KUSTOMIZE)
+	@echo "kustomize found at $$(command -v kustomize)"
+else
+	@{ \
+		set -e ;\
+		mkdir -p $(dir $(KUSTOMIZE)) ;\
+		rm -f $(KUSTOMIZE) ; \
+		mkdir -p $(KUSTOMIZE)-install ;\
+		curl -sSLo $(KUSTOMIZE)-install/kustomize.tar.gz https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv$(KUSTOMIZE_VERSION)/kustomize_v$(KUSTOMIZE_VERSION)_$(OS)_$(ARCH).tar.gz ;\
+		tar xzvf $(KUSTOMIZE)-install/kustomize.tar.gz -C $(KUSTOMIZE)-install/ >/dev/null ;\
+		mv $(KUSTOMIZE)-install/kustomize $(KUSTOMIZE) ;\
+		rm -rf $(KUSTOMIZE)-install ;\
+		chmod +x $(KUSTOMIZE) ;\
+		$(call output-install,kustomize,$(KUSTOMIZE_VERSION)) ;\
+	}
+endif
+endif
 
 .PHONY: opm
 OPM ?=  $(shell pwd)/bin/opm
+OPM_VERSION ?= 1.22.0
+OPM_LOCAL_VERSION := $(shell [ -f $(OPM) ] && $(OPM) version | cut -d'"' -f 2)
+OPM_HOST_VERSION := $(shell command -v opm >/dev/null && opm version | cut -d'"' -f 2)
 opm:
-	@(($$(command -v opm >/dev/null) && \
-		[[ $$(command -v opm) != "$(OPM)" ]] && \
-		[[ $$(opm version | cut -d'"' -f 2) =~ 'v$(OPM_VERSION)' ]]) && \
-		rm -f $(OPM) && ln -s $$(command -v opm) $(OPM) || true)
-	@([ -f '$(OPM)' ] && \
-		[[ $$($(OPM) version | cut -d'"' -f 2) =~ 'v$(OPM_VERSION)' ]] \
-		&& echo "opm $(OPM_VERSION) found") || { \
-			set -e ;\
-			mkdir -p $(dir $(OPM)) ;\
-			rm -f $(OPM) ; \
-			curl -sSLo $(OPM) https://github.com/operator-framework/operator-registry/releases/download/v$(OPM_VERSION)/$(OS)-$(ARCH)-opm ;\
-			chmod +x $(OPM) ;\
-			$(call output-install,opm,$(OPM_VERSION)) ;\
-		}
+ifneq (v$(OPM_VERSION), $(OPM_LOCAL_VERSION))
+	@rm -f $(OPM)
+ifeq (v$(OPM_VERSION),$(OPM_HOST_VERSION))
+	@ln -s $$(command -v opm) $(OPM)
+	@echo "opm found at $$(command -v opm)"
+else
+	@{ \
+		set -e ;\
+		mkdir -p $(dir $(OPM)) ;\
+		rm -f $(OPM) ; \
+		curl -sSLo $(OPM) https://github.com/operator-framework/operator-registry/releases/download/v$(OPM_VERSION)/$(OS)-$(ARCH)-opm ;\
+		chmod +x $(OPM) ;\
+		$(call output-install,opm,$(OPM_VERSION)) ;\
+	}
+endif
+endif
 
 .PHONY: minikube
 MINIKUBE ?=  $(shell pwd)/bin/minikube
-MINIKUBE_LOCAL_VERSION = $(shell [ -f $(MINIKUBE) ] && $(MINIKUBE) version)
-MINIKUBE_HOST_VERSION = $(shell command -v minikube >/dev/null && minikube version)
+MINIKUBE_VERSION ?= 1.26.1
+MINIKUBE_LOCAL_VERSION = $(shell [ -f $(MINIKUBE) ] && $(MINIKUBE) version --short)
+MINIKUBE_HOST_VERSION = $(shell command -v minikube >/dev/null && minikube version --short)
 minikube:
-	@(($$(command -v minikube >/dev/null) && \
-		[[ $$(command -v minikube) != "$(MINIKUBE)" ]] && \
-		[[ $$(minikube version --short) =~ 'v$(MINIKUBE_VERSION)' ]]) && \
-		rm -f $(MINIKUBE) && ln -s $$(command -v minikube) $(MINIKUBE) || true)
-	@([ -f '$(MINIKUBE)' ] && \
-		[[ $$($(MINIKUBE) version --short) =~ 'v$(MINIKUBE_VERSION)' ]] \
-		&& echo "minikube $(MINIKUBE_VERSION) found") || { \
-			set -e ;\
-			mkdir -p $(dir $(MINIKUBE)) ;\
-			rm -f $(MINIKUBE) ; \
-			curl -sSLo $(MINIKUBE)  https://storage.googleapis.com/minikube/releases/v$(MINIKUBE_VERSION)/minikube-$(OS)-$(ARCH) ;\
-			chmod +x $(MINIKUBE) ;\
-			$(call output-install,minikube,$(MINIKUBE_VERSION)) ;\
-		}
+ifneq (v$(MINIKUBE_VERSION), $(MINIKUBE_LOCAL_VERSION))
+	@rm -f $(MINIKUBE)
+ifeq (v$(MINIKUBE_VERSION),$(MINIKUBE_HOST_VERSION))
+	@ln -s $$(command -v minikube) $(MINIKUBE)
+	@echo "minikube found at $$(command -v minikube)"
+else
+	@{ \
+		set -e ;\
+		mkdir -p $(dir $(MINIKUBE)) ;\
+		rm -f $(MINIKUBE) ; \
+		curl -sSLo $(MINIKUBE)  https://storage.googleapis.com/minikube/releases/v$(MINIKUBE_VERSION)/minikube-$(OS)-$(ARCH) ;\
+		chmod +x $(MINIKUBE) ;\
+		$(call output-install,minikube,$(MINIKUBE_VERSION)) ;\
+	}
+endif
+endif
 
 .PHONY: operator-sdk
 OPERATOR_SDK ?=  $(shell pwd)/bin/operator-sdk
+OPERATOR_SDK_VERSION ?= 1.24.0
+OPERATOR_SDK_LOCAL_VERSION := $(shell [ -f $(OPERATOR_SDK) ] && $(OPERATOR_SDK) version | cut -d'"' -f 2)
+OPERATOR_SDK_HOST_VERSION := $(shell command -v operator-sdk >/dev/null && operator-sdk version | cut -d'"' -f 2)
 operator-sdk:
-	@(($$(command -v operator-sdk >/dev/null) && \
-		[[ $$(command -v operator-sdk) != "$(OPERATOR_SDK)" ]] && \
-		[[ $$(operator-sdk version | cut -d',' -f 1 | cut -d'"' -f 2) =~ 'v$(OPERATOR_SDK_VERSION)' ]]) && \
-		rm -f $(OPERATOR_SDK) && ln -s $$(command -v operator-sdk) $(OPERATOR_SDK) || true)
-	@([ -f '$(OPERATOR_SDK)' ] && \
-		[[ $$($(OPERATOR_SDK) version | cut -d',' -f 1 | cut -d'"' -f 2) =~ 'v$(OPERATOR_SDK_VERSION)' ]] \
-		&& echo "operator-sdk $(OPERATOR_SDK_VERSION) found") || { \
-			set -e ;\
-			mkdir -p $(dir $(OPERATOR_SDK)) ;\
-			rm -f $(OPERATOR_SDK) ; \
-			curl -sSLo $(OPERATOR_SDK) https://github.com/operator-framework/operator-sdk/releases/download/v$(OPERATOR_SDK_VERSION)/operator-sdk_$(OS)_$(ARCH) ;\
-			chmod +x $(OPERATOR_SDK) ;\
-			$(call output-install,operator-sdk,$(OPERATOR_SDK_VERSION)) ;\
-		}
+ifneq (v$(OPERATOR_SDK_VERSION), $(OPERATOR_SDK_LOCAL_VERSION))
+	@rm -f $(OPERATOR_SDK)
+ifeq (v$(OPERATOR_SDK_VERSION),$(OPERATOR_SDK_HOST_VERSION))
+	@ln -s $$(command -v operator-sdk) $(OPERATOR_SDK)
+	@echo "operator-sdk found at $$(command -v operator-sdk)"
+else
+	@{ \
+		set -e ;\
+		mkdir -p $(dir $(OPERATOR_SDK)) ;\
+		rm -f $(OPERATOR_SDK) ; \
+		curl -sSLo $(OPERATOR_SDK) https://github.com/operator-framework/operator-sdk/releases/download/v$(OPERATOR_SDK_VERSION)/operator-sdk_$(OS)_$(ARCH) ;\
+		chmod +x $(OPERATOR_SDK) ;\
+		$(call output-install,operator-sdk,$(OPERATOR_SDK_VERSION)) ;\
+	}
+endif
+endif
 
 .PHONY: kubectl
 KUBECTL ?=  $(shell pwd)/bin/kubectl
-kubectl: yq
-	@(($$(command -v kubectl >/dev/null) && \
-		[[ $$(command -v kubectl) != "$(KUBECTL)" ]] && \
-		[[ $$(kubectl version --client --output yaml | $(YQ) eval '.clientVersion.gitVersion' -) =~ 'v$(KUBECTL_VERSION)' ]]) && \
-		rm -f $(KUBECTL) && ln -s $$(command -v kubectl) $(KUBECTL) || true)
-	@([ -f '$(KUBECTL)' ] && \
-		[[ $$($(KUBECTL) version --client --output yaml | $(YQ) eval '.clientVersion.gitVersion' -) =~ 'v$(KUBECTL_VERSION)' ]] \
-		&& echo "kubectl $(KUBECTL_VERSION) found") || { \
-			set -e ;\
-			mkdir -p $(dir $(KUBECTL)) ;\
-			rm -f $(KUBECTL) ; \
-			curl -sSLo $(KUBECTL) https://dl.k8s.io/release/v$(KUBECTL_VERSION)/bin/$(OS)/$(ARCH)/kubectl ;\
-			chmod +x $(KUBECTL) ;\
-			$(call output-install,kubectl,$(KUBECTL_VERSION)) ;\
-		}
+KUBECTL_VERSION ?= 1.25.3
+KUBECTL_LOCAL_VERSION := $(shell [ -f $(KUBECTL) ] && $(KUBECTL) version --client --output yaml | grep 'gitVersion:' | tr -d ' ' | cut -d':' -f 2)
+KUBECTL_HOST_VERSION := $(shell command -v kubectl >/dev/null && kubectl version --client --output yaml | grep 'gitVersion:' | tr -d ' ' | cut -d':' -f 2)
+kubectl:
+ifneq (v$(KUBECTL_VERSION), $(KUBECTL_LOCAL_VERSION))
+	@rm -f $(KUBECTL)
+ifeq (v$(KUBECTL_VERSION),$(KUBECTL_HOST_VERSION))
+	@ln -s $$(command -v kubectl) $(KUBECTL)
+	@echo "kubectl found at $$(command -v kubectl)"
+else
+	@{ \
+		set -e ;\
+		mkdir -p $(dir $(KUBECTL)) ;\
+		rm -f $(KUBECTL) ; \
+		curl -sSLo $(KUBECTL) https://dl.k8s.io/release/v$(KUBECTL_VERSION)/bin/$(OS)/$(ARCH)/kubectl ;\
+		chmod +x $(KUBECTL) ;\
+		$(call output-install,kubectl,$(KUBECTL_VERSION)) ;\
+	}
+endif
+endif
 
 .PHONY: helm
 HELM ?=  $(shell pwd)/bin/helm
+HELM_VERSION ?= 3.10.1
+HELM_LOCAL_VERSION := $(shell [ -f $(HELM) ] && $(HELM) version --short | cut -d'+' -f 1)
+HELM_HOST_VERSION := $(shell command -v helm >/dev/null && helm version --short | cut -d'+' -f 1)
 helm:
-	@(($$(command -v helm >/dev/null) && \
-		[[ $$(command -v helm) != "$(HELM)" ]] && \
-		[[ $$(helm version --short) =~ 'v$(HELM_VERSION)' ]]) && \
-		rm -f $(HELM) && ln -s $$(command -v helm) $(HELM) || true)
-	@([ -f '$(HELM)' ] && [[ $$($(HELM) version --short) =~ 'v$(HELM_VERSION)' ]] && echo "helm $(HELM_VERSION) found") || { \
+ifneq (v$(HELM_VERSION), $(HELM_LOCAL_VERSION))
+	@rm -f $(HELM)
+ifeq (v$(HELM_VERSION),$(HELM_HOST_VERSION))
+	@ln -s $$(command -v helm) $(HELM)
+	@echo "helm found at $$(command -v helm)"
+else
+	@{ \
 		set -e ;\
 		mkdir -p $(dir $(HELM)) $(HELM)-install ;\
 		curl -sSLo $(HELM)-install/helm.tar.gz https://get.helm.sh/helm-v$(HELM_VERSION)-$(OS)-$(ARCH).tar.gz ;\
@@ -326,6 +348,8 @@ helm:
 		chmod +x $(HELM) ;\
 		$(call output-install,helm,$(HELM_VERSION)) ;\
 	}
+endif
+endif
 
 .PHONY: install-tools
 install-tools: controller-gen helm kubectl kubectl-slice kustomize minikube mockgen operator-sdk opm yq
