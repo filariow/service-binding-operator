@@ -135,24 +135,36 @@ define output-install
 echo "$(1)@$(2) installed"
 endef
 
+define check-installed
+($$(command -v $(1) >/dev/null) && \
+	[[ $$(command -v $(1)) != "$(2)" ]] && \
+	[[ $$($$(command -v $(1)) $(3)) =~ '$(4)' ]]) && \
+	rm -f $(2) && ln -s $$(command -v $(1)) $(2) || true ;\
+([ -f '$(2)' ] && [[ $$($(2) $(3)) =~ '$(4)' ]] && echo "$(1) $(4) found") || { \
+	rm -f $(2) ;
+endef
+
 # Download controller-gen locally if necessary
 CONTROLLER_GEN = $(shell pwd)/bin/controller-gen
-controller-gen:
-	@(($$(command -v controller-gen >/dev/null) && \
-		[[ $$(command -v controller-gen) != "$(CONTROLLER_GEN)" ]] && \
-		[[ $$(controller-gen --version | cut -d' ' -f 2) =~ 'v$(CONTROLLER_GEN_VERSION)' ]]) && \
-		rm -f $(CONTROLLER_GEN) && ln -s $$(command -v controller-gen) $(CONTROLLER_GEN) || true)
-	@([ -f '$(CONTROLLER_GEN)' ] && \
-		[[ $$($(CONTROLLER_GEN) --version | cut -d' ' -f 2) =~ 'v$(CONTROLLER_GEN_VERSION)' ]] \
-		&& echo "controller-gen $(CONTROLLER_GEN_VERSION) found") || { \
-			rm -f $(CONTROLLER_GEN) ;\
-			$(call go-install-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v$(CONTROLLER_GEN_VERSION)) ;\
-			$(call output-install,controller-gen,$(CONTROLLER_GEN_VERSION)) ;\
-		}
+CONTROLLER_GEN_VERSION ?= 0.7.0
+CONTROLLER_GEN_LOCAL_VERSION := $(shell [ -f $(CONTROLLER_GEN) ] && $(CONTROLLER_GEN) --version | cut -d' ' -f 2 || echo "")
+CONTROLLER_GEN_HOST_VERSION := $(shell command -v controller-gen >/dev/null && controller-gen --version | cut -d' ' -f 2 || echo "")
 
+controller-gen:
+ifneq ($(CONTROLLER_GEN_VERSION), $(CONTROLLER_GEN_LOCAL_VERSION))
+	@rm -f $(CONTROLLER_GEN)
+ifeq ($(CONTROLLER_GEN_VERSION),$(CONTROLLER_GEN_HOST_VERSION))
+	@ln -s $$(command -v controller-gen) $(CONTROLLER_GEN) ;\
+	@echo "controller-gen found at $$(command -v controller-gen)"
+else
+	@$(call go-install-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v$(CONTROLLER_GEN_VERSION))
+	@$(call output-install,controller-gen,$(CONTROLLER_GEN_VERSION))
+endif
+endif
 
 YQ = $(shell pwd)/bin/yq
 yq:
+	@$(call check-installed,yq,$(YQ),$$($(YQ) --version | cut -d' ' -f 2) =~ 'v$(YQ_VERSION)',$(YQ_VERSION)) \
 	@(($$(command -v yq >/dev/null) && \
 		[[ $$(command -v yq) != "$(YQ)" ]] && \
 		[[ $$(yq --version | cut -d' ' -f 3) =~ '$(YQ_VERSION)' ]]) && \
@@ -241,6 +253,8 @@ opm:
 
 .PHONY: minikube
 MINIKUBE ?=  $(shell pwd)/bin/minikube
+MINIKUBE_LOCAL_VERSION = $(shell [ -f $(MINIKUBE) ] && $(MINIKUBE) version)
+MINIKUBE_HOST_VERSION = $(shell command -v minikube >/dev/null && minikube version)
 minikube:
 	@(($$(command -v minikube >/dev/null) && \
 		[[ $$(command -v minikube) != "$(MINIKUBE)" ]] && \
