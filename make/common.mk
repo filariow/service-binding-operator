@@ -163,19 +163,20 @@ endif
 endif
 
 YQ = $(shell pwd)/bin/yq
+YQ_VERSION ?= 4.9.8
+YQ_LOCAL_VERSION := $(shell [ -f $(YQ) ] && $(YQ) --version | cut -d' ' -f 3)
+YQ_HOST_VERSION := $(shell command -v yq >/dev/null && uq --version | cut -d' ' -f 3)
 yq:
-	@$(call check-installed,yq,$(YQ),$$($(YQ) --version | cut -d' ' -f 2) =~ 'v$(YQ_VERSION)',$(YQ_VERSION)) \
-	@(($$(command -v yq >/dev/null) && \
-		[[ $$(command -v yq) != "$(YQ)" ]] && \
-		[[ $$(yq --version | cut -d' ' -f 3) =~ '$(YQ_VERSION)' ]]) && \
-		rm -f $(YQ) && ln -s $$(command -v yq) $(YQ) || true)
-	@([ -f '$(YQ)' ] && \
-		[[ $$($(YQ) --version | cut -d' ' -f 3) =~ '$(YQ_VERSION)' ]] \
-		&& echo "yq $(YQ_VERSION) found") || { \
-			rm -f $(YQ) ;\
-			$(call go-install-tool,$(YQ),github.com/mikefarah/yq/v4@v$(YQ_VERSION)) ;\
-			$(call output-install,yq,$(YQ_VERSION)) ;\
-		}
+ifneq ($(CONTROLLER_GEN_VERSION), $(CONTROLLER_GEN_LOCAL_VERSION))
+	@rm -f $(CONTROLLER_GEN)
+ifeq ($(CONTROLLER_GEN_VERSION),$(CONTROLLER_GEN_HOST_VERSION))
+	@ln -s $$(command -v controller-gen) $(CONTROLLER_GEN) ;\
+	@echo "controller-gen found at $$(command -v controller-gen)"
+else
+	$(call go-install-tool,$(YQ),github.com/mikefarah/yq/v4@v$(YQ_VERSION)) ;\
+	$(call output-install,yq,$(YQ_VERSION)) ;\
+endif
+endif
 
 KUBECTL_SLICE = $(shell pwd)/bin/kubectl-slice
 kubectl-slice:
