@@ -19,13 +19,14 @@ COPY --from=deps /deps/bin/* /usr/local/bin/
 ## Setup local user
 ARG UID
 ARG GID
-ARG UNAME
-RUN groupadd -g ${GID} -o ${UNAME} && \
-        useradd -m -u ${UID} -g ${GID} ${UNAME} && \
-        usermod -aG docker ${UNAME}
-USER $UNAME
+ARG USER
+RUN groupadd -g ${GID} -o ${USER} && \
+        useradd -m -u ${UID} -g ${GID} ${USER} && \
+        usermod -aG docker ${USER}
+USER $USER
 
+## Startup
 COPY .devcontainers/kind/start-kind.sh /startup/
 COPY .devcontainers/kind/kind-config.yaml /startup/
 COPY .devcontainers/kind/docker-daemon.json /startup/
-CMD bash -c "cd /startup && /startup/start-kind.sh" && sleep infinity
+CMD cd /startup && /startup/start-kind.sh && sleep infinity

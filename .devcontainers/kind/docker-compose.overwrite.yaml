@@ -1,0 +1,11 @@
+version: "3"
+services:
+  app:
+    user: "${USER:-filario}"
+    build:
+      args:
+         UID: ${UID:-4210986}
+         GID: ${GID:-4210986}
+         UNAME: ${USER:-filario}
+    environment:
+      KUBECONFIG: /home/${USER:-filario}/.kube/config

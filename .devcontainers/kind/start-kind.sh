@@ -1,5 +1,7 @@
 #!/bin/env sh
 
+[[ "$(kind get clusters 2>&1)" = "No kind cluster founds." ]] || exit 0
+
 unset KUBECONFIG
 mkdir -p ${HOME}/.kube
 kind create cluster --config ./kind-config.yaml

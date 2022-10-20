@@ -1,8 +1,8 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
 // https://github.com/microsoft/vscode-dev-containers/tree/v0.245.2/containers/docker-from-docker-compose
 {
-	"name": "Docker from Docker Compose",
-	"dockerComposeFile": "../.devcontainers/kind/docker-compose.yaml",
+	"name": "Kind",
+	"dockerComposeFile": [ "../.devcontainers/kind/docker-compose.yaml" ],
 	"service": "app",
 	"workspaceFolder": "/sbo",
 
