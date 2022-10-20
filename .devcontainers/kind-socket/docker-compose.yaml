@@ -1,0 +1,26 @@
+version: "3"
+services:
+  app:
+    user: "${USER:-vscode}"
+    build:
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+        DOCKER_GID: ${DOCKER_GID:-976}
+        USER: ${USER:-vscode}
+      context: ../../
+      dockerfile: .devcontainers/kind-socket/Dockerfile
+    working_dir: /sbo
+    volumes:
+      - ../../:/sbo:cached
+      - /var/run/docker.sock:/var/run/docker.sock 
+    environment:
+      KUBECONFIG: /home/${USER:-vscode}/.kube/config
+      OPERATOR_REPO_REF: registry:5000/sbo
+      DOCKER_BUILDKIT: 1
+      COMPOSE_DOCKER_CLI_BUILD: 1
+
+  registry:
+    image: registry:2
+    restart: always
+

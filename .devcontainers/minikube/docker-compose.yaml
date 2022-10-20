@@ -11,7 +11,7 @@ services:
       dockerfile: .devcontainers/minikube/Dockerfile
     working_dir: /sbo
     volumes:
-      - ../../:/sbo
+      - ../../:/sbo:cached
       - ./docker-daemon.json:/etc/docker/daemon.json
     environment:
       KUBECONFIG: /tmp/minikubeconfig

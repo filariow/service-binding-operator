@@ -11,7 +11,7 @@ services:
       dockerfile: .devcontainers/kind/Dockerfile
     working_dir: /sbo
     volumes:
-      - ../../:/sbo
+      - ../../:/sbo:cached
     environment:
       KUBECONFIG: /home/${USER:-vscode}/.kube/config
       DOCKER_HOST: tcp://dind:2375

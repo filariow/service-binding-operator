@@ -1,5 +1,7 @@
 #!/bin/env sh
 
+set -e
+
 [[ "$(kind get clusters 2>&1)" = "kind" ]] && exit 0
 
 unset KUBECONFIG
