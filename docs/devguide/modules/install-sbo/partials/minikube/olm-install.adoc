@@ -1,0 +1,16 @@
+== Install with OLM
+
+1. Enable OLM
+[source,bash]
++
+----
+minikube addons enable olm
+----
+
+2. Deploy the operator
++
+[source,bash]
+----
+make deploy
+----
+

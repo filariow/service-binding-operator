@@ -1,0 +1,27 @@
+== Install with manifests
+
+1. Install dependencies and configure image name
++
+[source,bash]
+----
+make yq
+export OPERATOR_IMAGE_REF=$(
+    kustomize build config/manager | \
+    kustomize cfg grep 'kind=Deployment' | \
+    ./bin/yq '.spec.template.spec.containers[0].image')
+----
+
+2. Build the operator's image
++
+[source,bash]
+----
+make image
+----
+
+3. Deploy the operator
++
+[source,bash]
+----
+kubectl apply -k config/default
+----
+

@@ -1,5 +1,3 @@
 * Installing Service Binding Operator
 
-** xref:install-sbo-olm.adoc[]
-** xref:install-sbo-wo-olm.adoc[]
-** xref:install-sbo-helm.adoc[]
+** xref:install-on-minikube.adoc[]

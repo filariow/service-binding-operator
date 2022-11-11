@@ -1,0 +1,36 @@
+== Install with Helm
+
+1. Configure shell
++
+[source,bash]
+----
+export OPERATOR_IMAGE_REF=sbo-dev:latest
+----
+
+2. Build the operator's image
++
+[source,bash]
+----
+make image
+----
+
+3. Install the CRDs
++
+[source,bash]
+----
+make install
+----
+
+4. Deploy the operator
++
+[source,bash]
+----
+kubectl create namespace service-binding-operator
+helm template \
+    --skip-tests \
+    --namespace service-binding-operator \
+    --set image.name=$OPERATOR_IMAGE_REF \
+    --set image.repository=docker.io \
+    ./charts/service-binding-operator | kubectl apply -f -
+----
+
