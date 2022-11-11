@@ -12,3 +12,4 @@ title: Developer Guide
 start_page: architecture.adoc
 nav:
   - modules/ROOT/nav.adoc
+  - modules/install-sbo/nav.adoc
