@@ -1,0 +1,30 @@
+== Release to Quay
+
+1. Login to Quay with your credentials
++
+[source,bash]
+----
+docker login quay.io
+----
+
+2. Export needed variables
++
+[source,bash]
+----
+export REPOSITORY="<TARGET_REPOSITORY>"
+----
+
+3. Build the image
++
+[source,bash]
+----
+make image OPERATOR_REPO_REF=quay.io/${REPOSITORY}/service-binding-operator
+----
+
+4. Push the image
++
+[source,bash]
+----
+make push-image OPERATOR_REPO_REF=quay.io/${REPOSITORY}/service-binding-operator
+----
+

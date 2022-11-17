@@ -7,10 +7,10 @@
 minikube addons enable olm
 ----
 
-2. Deploy the operator
+2. Build the images and deploy the operator through with OLM
 +
 [source,bash]
 ----
-make deploy
+make image bundle-image deploy-from-index-image -o push-image
 ----
 

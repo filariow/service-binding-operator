@@ -1,3 +1,1 @@
-* Installing Service Binding Operator
-
-** xref:install-on-minikube.adoc[]
+* xref:install-on-minikube.adoc[]

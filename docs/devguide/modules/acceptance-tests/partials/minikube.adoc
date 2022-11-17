@@ -1,0 +1,24 @@
+== On Minikube
+
+Refer to link:../install-sbo/install-on-minikube.html[Install on Minikube] to setup Minikube.
+
+1. Build and deploy the Service Binding Operator
++
+[source,bash]
+----
+make deploy OPERATOR_REPO_REF=$(minikube ip):5000/sbo
+----
+
+2. Run acceptance tests tagged with `@dev` using `kubectl` CLI
++
+[source,bash]
+----
+make test-acceptance TEST_ACCEPTANCE_TAGS="@dev" TEST_ACCEPTANCE_START_SBO=remote TEST_ACCEPTANCE_CLI=kubectl
+----
+
+3. Run acceptance tests for a single scenario
++
+[source,bash]
+----
+make test-acceptance TEST_ACCEPTANCE_START_SBO=remote TEST_ACCEPTANCE_CLI=kubectl EXTRA_BEHAVE_ARGS='-n "Specify path of secret in the Service Binding"'
+----

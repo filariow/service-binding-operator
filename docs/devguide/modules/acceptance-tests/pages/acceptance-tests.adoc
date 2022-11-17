@@ -1,0 +1,7 @@
+= Run Acceptance Tests
+
+[#remote-openshift]
+include::partial$remote-openshift.adoc[]
+
+[#minikube]
+include::partial$minikube.adoc[]

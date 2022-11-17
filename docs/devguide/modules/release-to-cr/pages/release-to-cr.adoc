@@ -1,0 +1,5 @@
+= Release to Container Registry
+
+[#release-to-quay]
+include::partial$release-to-quay.adoc[]
+
