@@ -12,4 +12,5 @@ make deploy-cert-manager
 [source,bash]
 ----
 eval $(minikube docker-env)
+export OPERATOR_IMAGE_REF=docker.io/redhat-developer/service-binding-operator:latest
 ----

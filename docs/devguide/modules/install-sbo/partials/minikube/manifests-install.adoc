@@ -1,14 +1,10 @@
 == Install with manifests
 
-1. Install dependencies and configure image name
+1. Configure manifests
 +
 [source,bash]
 ----
-make yq
-export OPERATOR_IMAGE_REF=$(
-    kustomize build config/manager | \
-    kustomize cfg grep 'kind=Deployment' | \
-    ./bin/yq '.spec.template.spec.containers[0].image')
+(cd config/manager && kustomize edit set image controller=$OPERATOR_IMAGE_REF)
 ----
 
 2. Build the operator's image
@@ -23,5 +19,15 @@ make image
 [source,bash]
 ----
 kubectl apply -k config/default
+----
+
+4. Patch the deployed operator
++
+[source,bash]
+----
+kubectl patch deployment service-binding-operator \
+	--patch '{"spec":{"template":{"spec":{"containers":[{"image":"'$OPERATOR_IMAGE_REF'","name":"controller","imagePullPolicy":"IfNotPresent"}]}}}}'
+kubectl patch deployment service-binding-operator \
+	--patch '{"spec":{"template":{"spec":{"containers":[{"image":"'$OPERATOR_IMAGE_REF'","name":"manager","imagePullPolicy":"IfNotPresent"}]}}}}'
 ----
 

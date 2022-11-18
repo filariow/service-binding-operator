@@ -1,0 +1,23 @@
+== Install with OLM
+
+1. Build the bundle image
++
+[source,bash]
+----
+make bundle-image
+----
+
+2. Push the bundle image
++
+[source,bash]
+----
+make push-bundle-image -o registry-login
+----
+
+3. Deploy from index image
++
+[source,bash]
+----
+make deploy-from-index-image
+----
+

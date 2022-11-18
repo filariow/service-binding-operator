@@ -1,0 +1,36 @@
+You can use a xref:https://developers.redhat.com/products/openshift/getting-started[managed Openshift cluster] or a xref:https://github.com/code-ready/crc[locally installed one].
+
+NOTE: You need _Administrator_ access to the cluster.
+
+== Configure the shell wrt target Container Registry
+
+You may prefer to use the Openshift's internal Container Registry or an external one.
+In the following, you find instructions for both.
+
+=== Using the Openshift's internal Container Registry
+
+1. Login into the Openshift's internal registry
++
+[source,bash]
+----
+oc registry login --skip-check
+----
+
+2. Configure the shell
++
+[source,bash]
+----
+export OPERATOR_REPO_REF=$(oc registry info)/service-binding-operator/controller
+----
+
+3. Push the image
++
+[source,bash]
+----
+make push-image
+----
+
+=== Using an external Container Registry
+
+1. Follow the instructions at link:../release-to-cr/release-to-cr.html[Release to a Container Registry] to login to an external Container Registry, configure the shell, and build and push the image.
+

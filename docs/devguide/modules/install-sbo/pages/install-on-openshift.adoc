@@ -1,0 +1,18 @@
+= Install on Openshift
+
+[#setup-openshift]
+include::partial$openshift/setup-openshift.adoc[]
+
+[#olm-install]
+include::partial$openshift/olm-install.adoc[]
+
+[#helm-install]
+include::partial$openshift/helm-install.adoc[]
+
+[#manifests-install]
+include::partial$openshift/manifests-install.adoc[]
+
+[#update-sbo]
+include::partial$update-sbo.adoc[]
+
+

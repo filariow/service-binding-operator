@@ -29,7 +29,7 @@ spec:
         - --zap-log-level=info
         command:
         - /manager
-        image: "{{.Values.image.repository}}/{{.Values.image.name}}"
+        image: "{{.Values.image.repository}}"
         imagePullPolicy: {{.Values.image.pullPolicy}}
         securityContext:
           allowPrivilegeEscalation: false

@@ -7,10 +7,29 @@
 minikube addons enable olm
 ----
 
-2. Build the images and deploy the operator through with OLM
+2. Configure the shell
 +
 [source,bash]
 ----
-make image bundle-image deploy-from-index-image -o push-image
+export OPERATOR_REPO_REF=service-binding-operator
+make bundle -o push-image
+
+make bundle-image -o push-image
+
+export OPERATOR_BUNDLE_IMAGE_REF=sbo-bundle:latest
+----
+
+3. Build the images
++
+[source,bash]
+----
+make image bundle-image -o push-image
+----
+
+4. Deploy the operator through with OLM
++
+[source,bash]
+----
+make deploy-from-index-image -o push-image
 ----
 

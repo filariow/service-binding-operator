@@ -1,1 +1,4 @@
-* xref:install-on-minikube.adoc[]
+* Install SBO
+
+** xref:install-on-minikube.adoc[On Minikube]
+** xref:install-on-openshift.adoc[On Openshift]
