@@ -1,20 +1,31 @@
 == Install with OLM
 
-1. Build the bundle image
+1. Configure the shell
 +
 [source,bash]
 ----
-make bundle-image
+export OPERATOR_REPO_REF=$REGISTRY/operators/service-binding-operator
+export OPERATOR_INDEX_IMAGE_REF=$REGISTRY/openshift-marketplace/service-binding-operator:index
+export OPERATOR_BUNDLE_IMAGE_REF=$REGISTRY/openshift-marketplace/sbo-bundle:latest
 ----
 
-2. Push the bundle image
+2. Create the namespace
 +
 [source,bash]
 ----
-make push-bundle-image -o registry-login
+oc create namespace operators
 ----
 
-3. Deploy from index image
+3. Push the images
++
+[source,bash]
+----
+make image push-image -o registry-login
+make bundle-image push-bundle-image -o registry-login
+make index-image push-index-image -o registry-login OPM_RENDER_OPTS=--skip-tls-verify
+----
+
+4. Deploy from index image
 +
 [source,bash]
 ----

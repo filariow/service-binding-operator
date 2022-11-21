@@ -11,12 +11,7 @@ OPERATOR_INDEX_NAME ?= $(CSV_PACKAGE_NAME)-index
 OPERATOR_INDEX_DIR ?= $(OPERATOR_INDEX_NAME)
 OPERATOR_INDEX_YAML ?= $(OPERATOR_INDEX_DIR)/index.yaml
 
-OPM_USE_HTTP ?= false
-ifeq ($(OPM_USE_HTTP),true)
-OPM_RENDER_OPTS := --use-http 
-else
-OPM_RENDER_OPTS :=
-endif
+OPM_RENDER_OPTS := 
 
 .PHONY: build
 ## Build operator binary
