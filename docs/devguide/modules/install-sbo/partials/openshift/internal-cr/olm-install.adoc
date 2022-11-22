@@ -1,6 +1,7 @@
-== Install with OLM
+=== Install with OLM
 
 1. Build and push the operator's image
++
 [source,bash]
 ----
 export OPERATOR_IMAGE_REF=$REGISTRY/openshift-operators/service-binding-operator:latest
@@ -13,6 +14,7 @@ make image push-image -o registry-login
 ----
 export OPERATOR_BUNDLE_IMAGE_REF=$REGISTRY/openshift-operators/sbo-bundle:latest
 export OPERATOR_REPO_REF=image-registry.openshift-image-registry.svc:5000/openshift-operators/service-binding-operator
+
 make bundle-image push-bundle-image -o registry-login -o push-image -o image
 ----
 
@@ -21,10 +23,11 @@ make bundle-image push-bundle-image -o registry-login -o push-image -o image
 [source,bash]
 ----
 export OPERATOR_INDEX_IMAGE_REF=$REGISTRY/openshift-marketplace/service-binding-operator:index
-make index-image -o push-bundle-image OPM_RENDER_OPTS=--skip-tls-verify
-sed -i 's/default-route-openshift-image-registry\..*\/openshift-/image-registry.openshift-image-registry.svc:5000\/openshift-/g' service-binding-operator-index/index.yaml
-docker build -f service-binding-operator-index.Dockerfile -t $OPERATOR_INDEX_IMAGE_REF .
-docker push $OPERATOR_INDEX_IMAGE_REF
+
+make index-image -o push-bundle-image OPM_RENDER_OPTS=--skip-tls-verify && \
+    sed -i 's/default-route-openshift-image-registry\..*\/openshift-/image-registry.openshift-image-registry.svc:5000\/openshift-/g' service-binding-operator-index/index.yaml && \
+    docker build -f service-binding-operator-index.Dockerfile -t $OPERATOR_INDEX_IMAGE_REF . && \
+    docker push $OPERATOR_INDEX_IMAGE_REF
 ----
 
 4. Deploy from index image

@@ -1,4 +1,4 @@
-== Install with manifests
+=== Install with manifests
 
 1. Deploy the operator
 +

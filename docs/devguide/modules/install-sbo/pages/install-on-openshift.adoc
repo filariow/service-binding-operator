@@ -1,18 +1,38 @@
 = Install on Openshift
 
-[#setup-openshift]
-include::partial$openshift/setup-openshift.adoc[]
+[#intro]
+include::partial$openshift/intro.adoc[]
 
-[#olm-install]
-include::partial$openshift/olm-install.adoc[]
+== Internal Container Registry
 
-[#helm-install]
-include::partial$openshift/helm-install.adoc[]
+[#icr-setup-openshift]
+include::partial$openshift/internal-cr/setup-openshift.adoc[]
 
-[#manifests-install]
-include::partial$openshift/manifests-install.adoc[]
+[#icr-olm-install]
+include::partial$openshift/internal-cr/olm-install.adoc[]
+
+[#icr-helm-install]
+include::partial$openshift/internal-cr/helm-install.adoc[]
+
+[#icr-manifests-install]
+include::partial$openshift/internal-cr/manifests-install.adoc[]
+
+== External Container Registry
+
+[#ecr-setup-openshift]
+include::partial$openshift/external-cr/setup-openshift.adoc[]
+
+[#ecr-olm-install]
+include::partial$openshift/external-cr/olm-install.adoc[]
+
+[#ecr-helm-install]
+include::partial$openshift/external-cr/helm-install.adoc[]
+
+[#ecr-manifests-install]
+include::partial$openshift/external-cr/manifests-install.adoc[]
+
+== Update Service Binding Operator
 
 [#update-sbo]
 include::partial$update-sbo.adoc[]
-
 

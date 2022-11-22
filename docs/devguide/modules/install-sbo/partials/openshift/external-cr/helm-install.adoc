@@ -1,4 +1,4 @@
-== Install with Helm
+=== Install with Helm
 
 1. Install the CRDs
 +
@@ -15,8 +15,7 @@ helm install \
     --skip-tests \
     --create-namespace \
     --namespace openshift-operators \
-    --set image.name=$OPERATOR_REPO_REF:$(git rev-parse --short=8 HEAD) \
-    --set image.repository=docker.io \
+    --set image.repository=docker.io/$OPERATOR_REPO_REF:$(git rev-parse --short=8 HEAD) \
     service-binding-operator \
     ./charts/service-binding-operator
 ----
@@ -29,8 +28,7 @@ kubectl create namespace service-binding-operator
 helm template \
     --skip-tests \
     --namespace service-binding-operator \
-    --set image.name=$OPERATOR_IMAGE_REF \
-    --set image.repository=docker.io \
+    --set image.repository=docker.io/$OPERATOR_IMAGE_REF:$(git rev-parse --short=8 HEAD) \
     ./charts/service-binding-operator | kubectl apply -f -
 ----
 

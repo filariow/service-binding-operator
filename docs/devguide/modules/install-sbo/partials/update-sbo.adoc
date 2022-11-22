@@ -1,5 +1,3 @@
-== Update Service Binding Operator
-
 To update the running instance of the Service Binding Operator, you can simply rebuild the image and delete the Service Binding Operator's pod:
 
 [source, bash]

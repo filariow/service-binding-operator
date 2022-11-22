@@ -1,0 +1,16 @@
+=== Install with manifests
+
+1. Deploy the operator
++
+[source,bash]
+----
+make deploy
+----
+
+2. Patch the deployment
++
+[source,bash]
+----
+kubectl patch deployment service-binding-operator \
+    --patch '{"spec":{"template":{"spec":{"containers":[{"image":"'$OPERATOR_IMAGE_REF'","name":"manager","imagePullPolicy":"IfNotPresent"}]}}}}'
+----
