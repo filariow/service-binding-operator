@@ -11,7 +11,8 @@ docker login quay.io
 +
 [source,bash]
 ----
-export OPERATOR_REPO_REF=quay.io/<TARGET_REPOSITORY>/service-binding-operator
+export REGISTRY=quay.io/<USERNAME>
+export OPERATOR_REPO_REF=$REGISTRY/service-binding-operator
 ----
 
 3. Build the image

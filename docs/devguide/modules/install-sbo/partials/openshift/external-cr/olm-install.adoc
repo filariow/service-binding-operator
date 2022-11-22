@@ -4,7 +4,7 @@
 +
 [source,bash]
 ----
-export OPERATOR_REPO_REF=$REGISTRY/openshift-operators/service-binding-operator:latest
+export OPERATOR_REPO_REF=$REGISTRY/service-binding-operator
 make image push-image -o registry-login
 ----
 
@@ -12,16 +12,24 @@ make image push-image -o registry-login
 +
 [source,bash]
 ----
-export OPERATOR_BUNDLE_IMAGE_REF=$REGISTRY/openshift-operators/sbo-bundle:latest
-make bundle-image push-bundle-image -o registry-login -o push-image -o image
+export OPERATOR_BUNDLE_REPO_REF=$REGISTRY/sbo-bundle
+make bundle-image push-bundle-image \
+    -o registry-login \
+    -o push-image \
+    -o image
 ----
 
 3. Build and push the index image
 +
 [source,bash]
 ----
-export OPERATOR_INDEX_IMAGE_REF=$REGISTRY/openshift-marketplace/service-binding-operator:index
-make index-image push-index-image OPM_RENDER_OPTS=--skip-tls-verify
+export OPERATOR_INDEX_REPO_REF=$REGISTRY/service-binding-operator
+make index-image push-index-image \
+    -o registry-login \
+    -o image \
+    -o push-image \
+    -o bundle-image \
+    -o push-bundle-image
 ----
 
 4. Deploy from index image
