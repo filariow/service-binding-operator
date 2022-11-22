@@ -12,6 +12,3 @@ include::partial$minikube/helm-install.adoc[]
 [#manifests-install]
 include::partial$minikube/manifests-install.adoc[]
 
-[#update-sbo]
-include::partial$update-sbo.adoc[]
-

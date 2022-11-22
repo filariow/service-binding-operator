@@ -31,8 +31,3 @@ include::partial$openshift/external-cr/helm-install.adoc[]
 [#ecr-manifests-install]
 include::partial$openshift/external-cr/manifests-install.adoc[]
 
-== Update Service Binding Operator
-
-[#update-sbo]
-include::partial$update-sbo.adoc[]
-
