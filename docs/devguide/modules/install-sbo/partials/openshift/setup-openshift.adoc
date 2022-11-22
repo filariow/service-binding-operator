@@ -24,6 +24,23 @@ export REGISTRY=$(oc get route default-route -n openshift-image-registry --templ
 oc registry login --skip-check
 ----
 
+3. Print the internal container registry URL
++
+[source,bash]
+----
+echo $REGISTRY
+----
+
+4. You may need to configure your `/etc/docker/daemon.json` adding the route to the internal container registry in the list `insecure-registries`.
++
+[source,json]
+----
+{
+  "insecure-registries": ["URL TO INTERNAL CONTAINER REGISTRY"]
+}
+----
+
+
 === Using an external Container Registry
 
 1. Follow the instructions at link:../release-to-cr/release-to-cr.html[Release to a Container Registry] to login to an external Container Registry, configure the shell, and build and push the image.

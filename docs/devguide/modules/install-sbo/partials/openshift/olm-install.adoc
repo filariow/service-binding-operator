@@ -1,34 +1,42 @@
 == Install with OLM
 
-1. Configure the shell
-+
+1. Build and push the operator's image
 [source,bash]
 ----
-export OPERATOR_REPO_REF=$REGISTRY/operators/service-binding-operator
-export OPERATOR_INDEX_IMAGE_REF=$REGISTRY/openshift-marketplace/service-binding-operator:index
-export OPERATOR_BUNDLE_IMAGE_REF=$REGISTRY/openshift-marketplace/sbo-bundle:latest
-----
-
-2. Create the namespace
-+
-[source,bash]
-----
-oc create namespace operators
-----
-
-3. Push the images
-+
-[source,bash]
-----
+export OPERATOR_IMAGE_REF=$REGISTRY/openshift-operators/service-binding-operator:latest
 make image push-image -o registry-login
-make bundle-image push-bundle-image -o registry-login
-make index-image push-index-image -o registry-login OPM_RENDER_OPTS=--skip-tls-verify
+----
+
+2. Build and push the bundle image
++
+[source,bash]
+----
+export OPERATOR_BUNDLE_IMAGE_REF=$REGISTRY/openshift-operators/sbo-bundle:latest
+export OPERATOR_REPO_REF=image-registry.openshift-image-registry.svc:5000/openshift-operators/service-binding-operator
+make bundle-image push-bundle-image -o registry-login -o push-image -o image
+----
+
+3. Build and push the index image
++
+[source,bash]
+----
+export OPERATOR_INDEX_IMAGE_REF=$REGISTRY/openshift-marketplace/service-binding-operator:index
+make index-image -o push-bundle-image OPM_RENDER_OPTS=--skip-tls-verify
+sed -i 's/default-route-openshift-image-registry\..*\/openshift-/image-registry.openshift-image-registry.svc:5000\/openshift-/g' service-binding-operator-index/index.yaml
+docker build -f service-binding-operator-index.Dockerfile -t $OPERATOR_INDEX_IMAGE_REF .
+docker push $OPERATOR_INDEX_IMAGE_REF
 ----
 
 4. Deploy from index image
 +
 [source,bash]
 ----
-make deploy-from-index-image
+export OPERATOR_IMAGE_REF=$(kubectl get imagestream -n openshift-operators service-binding-operator -o jsonpath='{.status.tags[0].items[0].dockerImageReference}')
+export OPERATOR_INDEX_IMAGE_REF=$(kubectl get imagestream -n openshift-marketplace service-binding-operator -o jsonpath='{.status.tags[0].items[0].dockerImageReference}')
+export OPERATOR_BUNDLE_IMAGE_REF=$(kubectl get imagestream -n openshift-operators sbo-bundle -o jsonpath='{.status.tags[0].items[0].dockerImageReference}')
+
+CATSRC_NAME_OVERRIDE=catsrc-sbo-dev make deploy-from-index-image
 ----
+
+NOTE: `CATSRC_NAME_OVERRIDE` is needed because otherwise the generated name for the catalogsource will be too long (bigger than 63 characters)
 
