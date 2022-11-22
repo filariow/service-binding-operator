@@ -41,5 +41,5 @@ export OPERATOR_BUNDLE_IMAGE_REF=$(kubectl get imagestream -n openshift-operator
 CATSRC_NAME_OVERRIDE=catsrc-sbo-dev make deploy-from-index-image
 ----
 
-NOTE: `CATSRC_NAME_OVERRIDE` is needed because otherwise the generated name for the catalogsource will be too long (bigger than 63 characters)
+NOTE: `CATSRC_NAME_OVERRIDE` is needed otherwise the generated name for the catalogsource will be too long (bigger than 63 characters)
 
