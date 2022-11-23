@@ -12,7 +12,7 @@ make image push-image -o registry-login
 +
 [source,bash]
 ----
-export OPERATOR_BUNDLE_IMAGE_REF=$REGISTRY/openshift-operators/sbo-bundle:latest
+export OPERATOR_BUNDLE_IMAGE_REF=$REGISTRY/openshift-marketplace/sbo-bundle:latest
 export OPERATOR_REPO_REF=image-registry.openshift-image-registry.svc:5000/openshift-operators/service-binding-operator
 
 make bundle-image push-bundle-image -o registry-login -o push-image -o image
@@ -36,7 +36,7 @@ make index-image -o push-bundle-image OPM_RENDER_OPTS=--skip-tls-verify && \
 ----
 export OPERATOR_IMAGE_REF=$(kubectl get imagestream -n openshift-operators service-binding-operator -o jsonpath='{.status.tags[0].items[0].dockerImageReference}')
 export OPERATOR_INDEX_IMAGE_REF=$(kubectl get imagestream -n openshift-marketplace service-binding-operator -o jsonpath='{.status.tags[0].items[0].dockerImageReference}')
-export OPERATOR_BUNDLE_IMAGE_REF=$(kubectl get imagestream -n openshift-operators sbo-bundle -o jsonpath='{.status.tags[0].items[0].dockerImageReference}')
+export OPERATOR_BUNDLE_IMAGE_REF=$(kubectl get imagestream -n openshift-marketplace sbo-bundle -o jsonpath='{.status.tags[0].items[0].dockerImageReference}')
 
 CATSRC_NAME_OVERRIDE=catsrc-sbo-dev make deploy-from-index-image
 ----

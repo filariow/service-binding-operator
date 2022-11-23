@@ -11,7 +11,7 @@ echo $REGISTRY
 +
 [source,bash]
 ----
-oc registry login
+oc registry login --skip-check
 ----
 
 3. You may need to configure your `/etc/docker/daemon.json` adding the route to the internal container registry in the list `insecure-registries`.
@@ -27,13 +27,13 @@ you can use `jq` to update it (as root)
 [source,console]
 +
 ----
-# mv /etc/docker/daemon.json{,.bkp}
-# jq '."insecure-registries" += ["'$REGISTRY'"]' /etc/docker/daemon.json.bkp > /etc/docker/daemon.json
+sudo cp /etc/docker/daemon.json{,.bkp}
+jq '."insecure-registries" += ["'$REGISTRY'"]' /etc/docker/daemon.json.bkp | sudo tee /etc/docker/daemon.json
 ----
 
 4. If you updated the `/etc/docker/daemon.json`, you have to restart the docker service (as root)
 +
 [source,console]
 ----
-# sudo systemctl restart docker.service docker.socket
+sudo systemctl restart docker.service docker.socket
 ----
